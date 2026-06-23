@@ -1,0 +1,39 @@
+[project]
+name = "docsmind"
+version = "0.1.0"
+description = "Agentic RAG platform over technical/ML documentation — production RAG, hybrid retrieval, eval, and LLMOps."
+requires-python = ">=3.11"
+dependencies = [
+    # Ingestion / indexing
+    "llama-index-core>=0.11",
+    "llama-index-readers-file>=0.2",
+    # Embeddings (self-hosted SLM-style, runs on CPU or the RTX 3070 Ti)
+    "sentence-transformers>=3.0",
+    # Vector store
+    "faiss-cpu>=1.8",
+    "numpy>=1.26",
+    # Cloud LLM (generation path)
+    "anthropic>=0.40",
+    # Serving
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+]
+
+[tool.setuptools.packages.find]
+include = ["docsmind*"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

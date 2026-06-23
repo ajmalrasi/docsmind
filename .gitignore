@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets
+.env
+
+# Build artifacts / data
+data/index/
+*.faiss
+*.log
+
+# Model caches (downloaded embedding weights)
+.cache/
