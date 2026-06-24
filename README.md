@@ -81,6 +81,40 @@ curl -s localhost:8000/query -H 'content-type: application/json' \
   -d '{"question":"When should I use HNSW over IVF-PQ?"}' | jq
 ```
 
+## Technologies
+
+### Phase 1 (Current)
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| **Language** | Python 3.11+ | Core implementation |
+| **API Framework** | FastAPI | HTTP serving (`/health`, `/query`) |
+| **Data Ingestion** | LlamaIndex | Document loading & semantic chunking |
+| **Embeddings** | sentence-transformers (bge-small) | Self-hosted dense embeddings |
+| **Vector Store** | FAISS (flat index) | Exact nearest-neighbor search |
+| **LLM Generation** | Anthropic Claude | Cloud-based answer generation |
+| **Config** | Pydantic Settings | Environment-driven configuration |
+| **Testing** | pytest | Unit & integration tests |
+
+### Future Phases
+
+| Phase | Technology | Purpose |
+|-------|-----------|---------|
+| **Phase 2** | FAISS IVF/HNSW/PQ · Qdrant | Index optimization & alternative backends |
+| **Phase 3** | BM25 · cross-encoder reranker | Hybrid retrieval & ranking |
+| **Phase 4** | vLLM · Ollama | Self-hosted SLM fallback + router |
+| **Phase 5** | LangGraph | Agentic orchestration (plan → tool → cite) |
+| **Phase 6** | RAGAS · Golden set | Evaluation & CI regression gates |
+| **Phase 7** | Docker · Kubernetes · Langfuse · MLflow | Ops, observability, cost tracking |
+| **Phase 8** | Neo4j | Knowledge graph RAG layer |
+
+### Why These Choices?
+
+- **LlamaIndex** (not LangChain): Purpose-built for RAG data pipelines; cleaner abstractions for load → chunk → embed → index.
+- **FAISS** (not Pinecone/Weaviate): Self-hosted, no vendor lock-in; Phase 2 adds alternatives.
+- **Anthropic Claude** (direct SDK, not LangChain wrapper): Full control, no abstraction tax, easier to add system-level features (caching, batching).
+- **LangGraph** (Phase 5, not LangChain agents): Explicit state machines for safer agentic flows and guardrails.
+
 ## Running on the GPU box (`beast`)
 
 The git repo lives on the dev machine; heavy work runs on `beast`
