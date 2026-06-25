@@ -51,4 +51,4 @@ You search FAISS for indices, then look up the actual text yourself.
 [docsmind/index/faiss_store.py](../../docsmind/index/faiss_store.py)
 [docsmind/index/base.py](../../docsmind/index/base.py)
 
-→ Next: **[06-full-pipeline/README.md](../06-full-pipeline/README.md)**
+→ Next: **[06-generation/README.md](../06-generation/README.md)**

@@ -76,6 +76,36 @@ trade ~1–5% recall for huge speed gains. Usually acceptable for RAG.
 
 ---
 
+## Generation
+
+**Why number the context passages [1][2][3]?**
+The numbers are what make citations traceable. Claude is instructed to cite
+every claim with [n]. The pipeline then extracts those markers with a regex
+and maps each back to the source filename and similarity score. Without
+numbers, you get an answer but can't trace any claim to a file.
+
+**Why put rules in the system prompt and not the user message?**
+Claude treats the system message as a persistent behavioral contract, giving
+it higher precedence than instructions embedded in the user message. "Answer
+only from context" belongs in the system message.
+
+**What is INSUFFICIENT_CONTEXT?**
+An exact string the pipeline uses as a sentinel. If Claude can't answer from
+the retrieved chunks, it returns this string. The pipeline checks
+`"INSUFFICIENT_CONTEXT" not in answer` and sets `grounded=false`. The exact
+string is defined once as a constant and used in both the prompt and the check.
+
+**Why direct Anthropic SDK and not LangChain's wrapper?**
+Direct SDK = full control over every API parameter, no hidden retry logic or
+routing, easier to add caching or streaming. The `LLMClient` interface means
+swapping to vLLM (Phase 4) is a one-class change with no pipeline edits.
+
+**What if Claude hallucinate-cites [7] when only 4 passages exist?**
+The citation extractor bounds-checks: `if 1 <= m <= len(results)`. Invalid
+markers are silently dropped. It's a small but important guard.
+
+---
+
 ## Pipeline
 
 **Walk me through your RAG pipeline.**

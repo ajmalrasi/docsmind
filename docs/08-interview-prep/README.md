@@ -1,4 +1,4 @@
-# 07 — Interview Prep
+# 08 — Interview Prep
 
 **The big idea:** Interviewers don't just ask "what is FAISS?" — they ask
 "why FAISS over Pinecone?" and "when would you NOT use it?" These are the
@@ -12,7 +12,8 @@ understands it. This folder collects every "why X over Y" question by topic.
 | [chunking-questions.md](chunking-questions.md) | Chunk size, overlap, splitter type tradeoffs |
 | [embedding-questions.md](embedding-questions.md) | Self-hosted vs cloud, bi-encoder vs cross-encoder, dimensions |
 | [retrieval-questions.md](retrieval-questions.md) | FAISS vs Pinecone, Flat vs HNSW, exact vs approximate |
-| [pipeline-questions.md](pipeline-questions.md) | RAG vs fine-tuning, hallucination, top-k, latency |
+| [generation-questions.md](generation-questions.md) | Prompting Claude, citations, guardrail, latency, streaming |
+| [pipeline-questions.md](pipeline-questions.md) | RAG vs fine-tuning, hallucination, top-k, LangChain vs SDK |
 | [cheat-sheet.md](cheat-sheet.md) | One page — all key "why this" answers in 2 sentences each |
 
 ## How to use this

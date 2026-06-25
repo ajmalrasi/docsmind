@@ -19,14 +19,15 @@ question  → embed ──────────────────→ se
 | 3 | [03-normalization/](03-normalization/) | The vector math that makes search fair and fast |
 | 4 | [04-vector-similarity/](04-vector-similarity/) | How we measure "closeness" between two vectors |
 | 5 | [05-faiss/](05-faiss/) | The engine that stores vectors and finds the closest ones |
-| 6 | [06-full-pipeline/](06-full-pipeline/) | Every piece wired together, a real query end to end |
-| 7 | [07-interview-prep/](07-interview-prep/) | Every "why X over Y" question an interviewer will ask |
+| 6 | [06-generation/](06-generation/) | Building context, prompting Claude, citations, guardrail |
+| 7 | [07-full-pipeline/](07-full-pipeline/) | Every piece wired together, a real query end to end |
+| 8 | [08-interview-prep/](08-interview-prep/) | Every "why X over Y" question an interviewer will ask |
 
 ## How to use this
 
-- **First time:** follow the numbers, 1 → 6.
+- **First time:** follow the numbers, 1 → 7.
 - **Stuck on a concept:** each folder has a `README.md` that links to every file inside.
-- **Interview prep:** go straight to `07-interview-prep/` — it has crisp answers for every tradeoff question.
+- **Interview prep:** go straight to `08-interview-prep/` — it has crisp answers for every tradeoff question.
 - **See the real code:** every file links to the actual source file it's explaining.
 
 → Start here: **[01-chunks-and-overlap/README.md](01-chunks-and-overlap/README.md)**

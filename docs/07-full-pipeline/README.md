@@ -1,4 +1,4 @@
-# 06 — Full Pipeline
+# 07 — Full Pipeline
 
 **The big idea:** Every piece we've studied connects into one flow. A document
 goes in at ingest time and a grounded answer with citations comes out at query
@@ -64,4 +64,4 @@ RAG is the right default for "chat with your docs" use cases.
 | [pipeline.py](../../docsmind/pipeline.py) | retrieve → build context → generate → cite |
 | [serving/app.py](../../docsmind/serving/app.py) | FastAPI: /health, /query |
 
-→ Next: **[07-interview-prep/README.md](../07-interview-prep/README.md)**
+→ Next: **[08-interview-prep/README.md](../08-interview-prep/README.md)**

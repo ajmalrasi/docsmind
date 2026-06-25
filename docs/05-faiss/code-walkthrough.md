@@ -100,4 +100,4 @@ which reads both files and reconstructs the in-memory index. Queries then run
 entirely in memory — no disk I/O per query.
 
 → Back to: **[README.md](README.md)**
-→ Next topic: **[06-full-pipeline/README.md](../06-full-pipeline/README.md)**
+→ Next topic: **[06-generation/README.md](../06-generation/README.md)**
