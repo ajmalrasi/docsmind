@@ -44,7 +44,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 model = SentenceTransformer("BAAI/bge-small-en-v1.5")
-embeddings = model.encode(["HNSW is a graph-based index"], normalize_embeddings=True)
+embeddings = model.encode(["A black hole traps light at its event horizon"], normalize_embeddings=True)
 
 length = np.linalg.norm(embeddings[0])
 print(f"Length: {length:.6f}")

@@ -53,7 +53,7 @@ docsmind/
   config.py    pydantic-settings
   pipeline.py  retrieve → generate → cite
   factory.py   composition root
-data/sample_docs/   sample ML/infra docs
+data/sample_docs/   sample documents (space & astronomy)
 scripts/            ingest.py, demo.py
 tests/              offline pytest suite
 ```
@@ -78,7 +78,7 @@ make serve                    # FastAPI on http://localhost:8000
 ```bash
 curl -s localhost:8000/health
 curl -s localhost:8000/query -H 'content-type: application/json' \
-  -d '{"question":"When should I use HNSW over IVF-PQ?"}' | jq
+  -d '{"question":"How do black holes form?"}' | jq
 ```
 
 ## Technologies

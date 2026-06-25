@@ -17,8 +17,8 @@ similarity equal to a simple dot product — which is what FAISS's
 
 **Q: Why L2 normalize?**
 So that vector *length* doesn't affect similarity — only *direction* (meaning)
-does. Two chunks about HNSW should be close whether one is 50 words and the
-other is 500. After normalization, all vectors have the same length (1.0), so
+does. Two chunks about black holes should be close whether one is 50 words and
+the other is 500. After normalization, all vectors have the same length (1.0), so
 the only thing left to compare is the angle between them, which represents
 meaning.
 

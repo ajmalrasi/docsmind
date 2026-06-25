@@ -37,45 +37,45 @@ def _extract_citations(answer: str, results: list[SearchResult]) -> list[Citatio
 
 ## Step-by-step example
 
-Claude returned:
+The model returned (real output for *"How do black holes form?"*):
 
 ```
-"Use HNSW [1][4] when your data fits in RAM...
-it delivers the best recall-vs-latency tradeoff [1].
-HNSW uses more memory than IVF [3]."
+"Black holes form when matter is compressed... exceeds the speed of light [1].
+Stellar-mass black holes form from collapsing massive stars [1][2], and
+supermassive black holes form at the centers of galaxies [1][3]."
 ```
 
 **Step 1 — Find all markers:**
 ```python
 _MARKER_RE.findall(answer)
-# → ['1', '4', '1', '3']
+# → ['1', '1', '2', '1', '3']
 
 cited_markers = {int(m) for m in ...}
-# → {1, 3, 4}   (set removes duplicates)
+# → {1, 2, 3}   (set removes duplicates)
 ```
 
 **Step 2 — Validate (only keep markers that map to real chunks):**
 ```python
 # We have 4 chunks (results[0..3]), so valid = {1, 2, 3, 4}
-# {1, 3, 4} are all valid — keep them all
-# If Claude hallucinated [7], it would be filtered out here
-cited_markers = {1, 3, 4}
+# {1, 2, 3} are all valid — keep them all
+# If the model hallucinated [7], it would be filtered out here
+cited_markers = {1, 2, 3}
 ```
 
 **Step 3 — Build Citation objects:**
 ```python
-Citation(marker=1, source="faiss_index_types.md", score=0.891,
-         snippet="HNSW builds a multi-layer graph and navigates it greedily...")
+Citation(marker=1, source="black_holes.md", score=0.8141,
+         snippet="A black hole is a region of spacetime where gravity is so strong...")
 
-Citation(marker=3, source="faiss_index_types.md", score=0.856,
-         snippet="HNSW uses more memory than IVF because it stores graph edges...")
+Citation(marker=2, source="stellar_lifecycle.md", score=0.6333,
+         snippet="A star much more massive than the Sun... collapses in a supernova...")
 
-Citation(marker=4, source="faiss_index_types.md", score=0.841,
-         snippet="Large corpus, accuracy-sensitive, fits in RAM: HNSW...")
+Citation(marker=3, source="solar_system.md", score=0.5691,
+         snippet="The Sun is a main-sequence star that fuses hydrogen into helium...")
 ```
 
-Notice: `[2]` is not in the citations because Claude didn't use it in the answer.
-FAISS retrieved 4 chunks but Claude only needed 3. That's normal.
+Notice: `[4]` (the rocket passage) is not in the citations because the model
+didn't use it. FAISS retrieved 4 chunks but the model only needed 3. That's normal.
 
 ## The Citation schema
 
@@ -95,7 +95,7 @@ and the exact text passage that supported the claim.
 
 ## What the validation step protects against
 
-Claude might occasionally hallucinate a citation marker — writing `[7]` when
+The model might occasionally hallucinate a citation marker — writing `[7]` when
 only 4 passages were provided. The bounds check
 `if 1 <= m <= len(results)` silently drops invalid markers rather than
 crashing or returning a bogus citation. It's a small but important guard.

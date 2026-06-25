@@ -5,11 +5,11 @@ similar vs dissimilar texts produce different vectors.
 
 ## Two similar chunks
 
-From your [faiss_index_types.md](../../data/sample_docs/faiss_index_types.md):
+From [black_holes.md](../../data/sample_docs/black_holes.md):
 
 ```python
-text_a = "HNSW builds a multi-layer graph and navigates it greedily."
-text_b = "HNSW typically delivers the best recall-vs-latency tradeoff."
+text_a = "The event horizon is the boundary of a black hole; nothing escapes it."
+text_b = "Once light crosses the horizon of a black hole, it can never get back out."
 
 embedding_a = model.encode(text_a)
 embedding_b = model.encode(text_b)
@@ -24,16 +24,16 @@ embedding_b: [ 0.041,  0.021, -0.029,  0.069, -0.058,  0.081, -0.020,  0.067,  0
 
 Notice: the numbers are close. Same topic → similar vector.
 
-**Cosine similarity between them:** ~0.94 (very high)
+**Cosine similarity between them:** ~0.90 (very high)
 
 ---
 
 ## One very different chunk
 
-From [kubernetes_gpu.md](../../data/sample_docs/kubernetes_gpu.md):
+From [the_iss.md](../../data/sample_docs/the_iss.md):
 
 ```python
-text_c = "Kubernetes schedules GPU workloads using resource limits."
+text_c = "The ISS orbits Earth roughly every 90 minutes in low Earth orbit."
 
 embedding_c = model.encode(text_c)
 ```
@@ -44,27 +44,30 @@ embedding_c = model.encode(text_c)
 embedding_c: [-0.031,  0.089,  0.047, -0.052,  0.078, -0.044,  0.061, -0.037,  0.055,  0.083, ...]
 ```
 
-Notice: the pattern is completely different from `embedding_a`.
+Notice: the pattern is completely different from `embedding_a`. Both are about
+space — but one is about black-hole gravity and the other about an orbiting
+station, so the meanings (and the vectors) diverge.
 
-**Cosine similarity between a and c:** ~0.21 (very low — different topics)
+**Cosine similarity between a and c:** ~0.40 (low — same domain, different topic)
 
 ---
 
 ## What this means for retrieval
 
-Query: *"How does HNSW navigate its graph?"*
+Query: *"What is the boundary of a black hole?"*
 
 ```
 Embedded query: [ 0.040,  0.019, -0.030, ...]  (similar to text_a and text_b)
 
 Similarity scores:
-  text_a (HNSW graph)        → 0.92  ← retrieved ✅
-  text_b (HNSW recall)       → 0.89  ← retrieved ✅
-  text_c (Kubernetes GPU)    → 0.18  ← not retrieved ✅
+  text_a (event horizon)   → 0.91  ← retrieved ✅
+  text_b (light crosses)   → 0.88  ← retrieved ✅
+  text_c (ISS orbit)       → 0.38  ← ranked far below ✅
 ```
 
-FAISS returns `text_a` and `text_b`. Kubernetes chunk is ignored. The retrieval
-is right — the question was about HNSW, not Kubernetes.
+FAISS ranks the two black-hole chunks at the top. The ISS chunk sits far below.
+The retrieval is right — the question was about black holes, not the space
+station.
 
 ---
 

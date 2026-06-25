@@ -19,9 +19,18 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Generation (cloud LLM). The Anthropic SDK reads ANTHROPIC_API_KEY itself,
-    # so the key is never stored on this object.
+    # Generation. Provider selects the LLM backend: "cloud" (Anthropic) or
+    # "local" (self-hosted via Ollama). This is the Phase 4 router seam.
+    llm_provider: str = "cloud"
+
+    # Cloud LLM. The Anthropic SDK reads ANTHROPIC_API_KEY itself, so the key is
+    # never stored on this object.
     cloud_llm_model: str = "claude-opus-4-8"
+
+    # Local LLM (Ollama). Used when llm_provider == "local".
+    local_llm_model: str = "deepseek-coder-v2:16b-lite-instruct-q4_K_M"
+    ollama_base_url: str = "http://localhost:11434"
+
     max_tokens: int = 1024
 
     # Self-hosted embedding model.

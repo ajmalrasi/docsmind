@@ -5,9 +5,9 @@ from raw question text to ranked chunks with scores.
 
 ## Setup
 
-We have 4 documents chunked into ~50 vectors, all stored in FAISS.
+We have 5 space documents, each one chunk, all stored in FAISS.
 
-**Question:** *"When should I use HNSW over IVF-PQ?"*
+**Question:** *"How do black holes form?"*
 
 ---
 
@@ -16,7 +16,7 @@ We have 4 documents chunked into ~50 vectors, all stored in FAISS.
 ```python
 # docsmind/retrieval/retriever.py
 
-query_vec = self._embedder.encode(["When should I use HNSW over IVF-PQ?"])[0]
+query_vec = self._embedder.encode(["How do black holes form?"])[0]
 # query_vec shape: (384,)
 # query_vec is normalized (length = 1.0)
 ```
@@ -26,7 +26,7 @@ Same model → same vector space → comparable vectors.
 
 ---
 
-## Step 2: FAISS searches all 50 vectors
+## Step 2: FAISS searches all vectors
 
 ```python
 # docsmind/index/faiss_store.py
@@ -35,13 +35,13 @@ scores, indices = self._index.search(query_vec.reshape(1, -1), top_k=4)
 ```
 
 FAISS computes the inner product (= cosine similarity) between the question
-vector and all 50 chunk vectors. Returns the 4 highest scores with their
+vector and all stored chunk vectors. Returns the 4 highest scores with their
 positions (indices) in the stored array.
 
 ```
-Internal FAISS result:
-  indices = [12, 3, 8, 15]        # positions in the stored array
-  scores  = [0.89, 0.87, 0.85, 0.84]
+Internal FAISS result (real measured values):
+  indices = [0, 4, 1, 2]                  # positions in the stored array
+  scores  = [0.8141, 0.6333, 0.5691, 0.5240]
 ```
 
 ---
@@ -55,26 +55,33 @@ for score, idx in zip(scores[0], indices[0]):
 ```
 
 ```
-SearchResult #1  score=0.891
-  source: faiss_index_types.md
-  text: "HNSW builds a multi-layer graph and navigates it greedily.
-         It typically delivers the best recall-vs-latency tradeoff..."
+SearchResult #1  score=0.8141
+  source: black_holes.md
+  text: "A black hole is a region of spacetime where gravity is so strong that
+         nothing — not even light — can escape... Stellar-mass black holes form
+         when a massive star collapses in a supernova..."
 
-SearchResult #2  score=0.874
-  source: faiss_index_types.md
-  text: "IVF partitions the vector space into `nlist` cells using k-means.
-         Increasing `nprobe` raises recall at the cost of latency..."
+SearchResult #2  score=0.6333
+  source: stellar_lifecycle.md
+  text: "A star much more massive than the Sun... collapses and rebounds in a
+         supernova. The most massive cores collapse completely into a black
+         hole..."
 
-SearchResult #3  score=0.856
-  source: faiss_index_types.md
-  text: "HNSW uses more memory than IVF because it stores graph edges
-         in addition to the vectors..."
+SearchResult #3  score=0.5691
+  source: solar_system.md
+  text: "The Sun is a main-sequence star that fuses hydrogen into helium...
+         the gravitational anchor of the entire system..."
 
-SearchResult #4  score=0.841
-  source: faiss_index_types.md
-  text: "Large corpus, accuracy-sensitive, fits in RAM: HNSW.
-         Very large corpus, memory-constrained: IVF-PQ..."
+SearchResult #4  score=0.5240
+  source: rocket_propulsion.md
+  text: "To leave Earth's gravity entirely, a spacecraft must reach escape
+         velocity, about 11.2 kilometers per second..."
 ```
+
+Notice the pattern: `black_holes.md` is the strong hit (0.81), `stellar_lifecycle.md`
+is genuinely related (0.63 — massive stars collapse into black holes), and the
+last two are space-domain but off-topic, retrieved only because they're the
+next-highest scores.
 
 ---
 
@@ -83,15 +90,17 @@ SearchResult #4  score=0.841
 These 4 chunks (with their sources and scores) go to `RAGPipeline.query()`,
 which:
 1. Formats them as numbered context passages `[1]`, `[2]`, `[3]`, `[4]`
-2. Sends them + the question to Claude
-3. Claude answers using only those passages and cites by number
+2. Sends them + the question to the LLM
+3. The LLM answers using only relevant passages and cites by number
 4. The pipeline extracts citations and maps `[n]` back to `source` filenames
+
+(In the real run, the model cited `[1]`, `[2]`, and `[3]` and ignored `[4]`.)
 
 ---
 
 ## The speed
 
-For 50 chunks: FAISS finishes in < 1 millisecond.
+For a handful of chunks: FAISS finishes in < 1 millisecond.
 For 1 million chunks with a Flat index: ~100ms (linear scan).
 For 1 million chunks with HNSW: ~1ms (approximate, graph traversal).
 

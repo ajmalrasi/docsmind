@@ -7,21 +7,21 @@ the actual chunk text.
 ## The full search flow
 
 ```
-1. RAGPipeline.query("When should I use HNSW?")
+1. RAGPipeline.query("How do black holes form?")
        ↓
 2. Retriever.retrieve(question, top_k=4)
        ↓
-3. Embedder.encode(["When should I use HNSW?"]) → query_vec (384 floats)
+3. Embedder.encode(["How do black holes form?"]) → query_vec (384 floats)
        ↓
 4. FaissVectorStore.search(query_vec, top_k=4)
        ↓
 5. faiss.IndexFlatIP.search(query_vec.reshape(1,-1), k=4)
-       → scores  = [[0.891, 0.874, 0.856, 0.841]]
-       → indices = [[12,    3,     8,     15   ]]
+       → scores  = [[0.8141, 0.6333, 0.5691, 0.5240]]
+       → indices = [[0,      4,      1,      2     ]]
        ↓
-6. Look up self._chunks[12], self._chunks[3], self._chunks[8], self._chunks[15]
+6. Look up self._chunks[0], self._chunks[4], self._chunks[1], self._chunks[2]
        ↓
-7. Return [SearchResult(chunk=..., score=0.891), ...]
+7. Return [SearchResult(chunk=..., score=0.8141), ...]
 ```
 
 ## FAISS only knows positions

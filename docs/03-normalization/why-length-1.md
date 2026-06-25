@@ -7,20 +7,20 @@ is compared.
 
 ## The problem without normalization
 
-Imagine two chunks about HNSW:
+Imagine two chunks about black holes:
 
 ```
-Chunk A (short, 20 words):   "HNSW is a graph-based index."
-Chunk B (long, 200 words):   "HNSW is a graph-based index. It builds a
-                              multi-layer graph and navigates it greedily.
-                              The key parameters are M and efSearch..."
+Chunk A (short, 20 words):   "A black hole traps light at its event horizon."
+Chunk B (long, 200 words):   "A black hole traps light at its event horizon. It
+                              is the point of no return; anything crossing it,
+                              including light, can never get back out..."
 
 Raw embedding_A: [0.5,  0.3,  0.8]   → length = √(0.25 + 0.09 + 0.64) = 0.99
 Raw embedding_B: [1.2,  0.7,  1.9]   → length = √(1.44 + 0.49 + 3.61) = 2.35
 ```
 
-Both chunks are *about* HNSW — same meaning, same direction. But Chunk B's
-vector is **2.4× longer** just because it's a longer piece of text.
+Both chunks are *about* event horizons — same meaning, same direction. But Chunk
+B's vector is **2.4× longer** just because it's a longer piece of text.
 
 Now if a query comes in and we measure Euclidean distance:
 
@@ -61,7 +61,7 @@ After normalization:
 
 Both arrows point the same direction — same meaning. The only difference was
 scale, which we removed. Now their similarity score is 0.999, correctly
-reflecting that they're both about HNSW.
+reflecting that they're both about event horizons.
 
 ## The FAISS bonus
 

@@ -2,22 +2,23 @@
 
 **TL;DR:** The 4 chunks from FAISS are formatted into numbered passages
 `[1]`, `[2]`, `[3]`, `[4]`. These numbers are what make citations possible —
-Claude cites by number, and the pipeline maps each number back to a file.
+the model cites by number, and the pipeline maps each number back to a file.
 
 ## The raw FAISS output
 
-After FAISS search, the pipeline has:
+After FAISS search, the pipeline has (real values for *"How do black holes
+form?"*):
 
 ```python
 results = [
-    SearchResult(chunk=Chunk(text="HNSW builds a multi-layer graph...",
-                             source="faiss_index_types.md"), score=0.891),
-    SearchResult(chunk=Chunk(text="IVF partitions the vector space...",
-                             source="faiss_index_types.md"), score=0.874),
-    SearchResult(chunk=Chunk(text="HNSW uses more memory than IVF...",
-                             source="faiss_index_types.md"), score=0.856),
-    SearchResult(chunk=Chunk(text="Large corpus: HNSW. Memory-constrained: IVF-PQ.",
-                             source="faiss_index_types.md"), score=0.841),
+    SearchResult(chunk=Chunk(text="A black hole is a region of spacetime where gravity...",
+                             source="black_holes.md"), score=0.8141),
+    SearchResult(chunk=Chunk(text="A star much more massive than the Sun... supernova...",
+                             source="stellar_lifecycle.md"), score=0.6333),
+    SearchResult(chunk=Chunk(text="The Sun is a main-sequence star that fuses hydrogen...",
+                             source="solar_system.md"), score=0.5691),
+    SearchResult(chunk=Chunk(text="To leave Earth's gravity, a spacecraft must reach escape velocity...",
+                             source="rocket_propulsion.md"), score=0.5240),
 ]
 ```
 
@@ -41,24 +42,26 @@ def _build_context(results: list[SearchResult]) -> str:
 Output:
 
 ```
-[1] (source: faiss_index_types.md)
-HNSW builds a multi-layer graph and navigates it greedily. It typically
-delivers the best recall-vs-latency tradeoff for in-memory search...
+[1] (source: black_holes.md)
+A black hole is a region of spacetime where gravity is so strong that nothing —
+not even light — can escape. Stellar-mass black holes form when a massive star,
+typically more than about 20 times the mass of the Sun, collapses in a supernova...
 
-[2] (source: faiss_index_types.md)
-IVF partitions the vector space into `nlist` cells using k-means and, at
-query time, only searches the `nprobe` cells nearest to the query...
+[2] (source: stellar_lifecycle.md)
+A star much more massive than the Sun burns through its fuel quickly and becomes
+a red supergiant. When its core can no longer support itself, it collapses and
+rebounds in a supernova; the most massive cores collapse into a black hole...
 
-[3] (source: faiss_index_types.md)
-HNSW uses more memory than IVF because it stores graph edges in addition
-to the vectors...
+[3] (source: solar_system.md)
+The Sun is a main-sequence star that fuses hydrogen into helium in its core,
+the gravitational anchor of the entire system...
 
-[4] (source: faiss_index_types.md)
-Large corpus, accuracy-sensitive, fits in RAM: HNSW.
-Very large corpus, memory-constrained: IVF-PQ.
+[4] (source: rocket_propulsion.md)
+To leave Earth's gravity entirely, a spacecraft must reach escape velocity,
+about 11.2 kilometers per second...
 ```
 
-## Then the full prompt to Claude
+## Then the full prompt to the LLM
 
 ```python
 prompt = f"Context passages:\n\n{context}\n\nQuestion: {question}\n\nAnswer:"
@@ -69,32 +72,32 @@ Which produces:
 ```
 Context passages:
 
-[1] (source: faiss_index_types.md)
-HNSW builds a multi-layer graph...
+[1] (source: black_holes.md)
+A black hole is a region of spacetime where gravity...
 
-[2] (source: faiss_index_types.md)
-IVF partitions the vector space...
+[2] (source: stellar_lifecycle.md)
+A star much more massive than the Sun... supernova...
 
-[3] (source: faiss_index_types.md)
-HNSW uses more memory than IVF...
+[3] (source: solar_system.md)
+The Sun is a main-sequence star...
 
-[4] (source: faiss_index_types.md)
-Large corpus: HNSW. Memory-constrained: IVF-PQ.
+[4] (source: rocket_propulsion.md)
+To leave Earth's gravity... escape velocity...
 
-Question: When should I use HNSW over IVF-PQ?
+Question: How do black holes form?
 
 Answer:
 ```
 
 ## Why number them?
 
-Claude is told in the system prompt to cite with `[n]`. When it writes
-*"Use HNSW for in-memory search [1]"*, the pipeline later extracts `[1]`
-and maps it back to `results[0]` — which has the source filename, the
-similarity score, and a text snippet. That's what becomes the `Citation`
-object returned to the user.
+The model is told in the system prompt to cite with `[n]`. When it writes
+*"Stellar-mass black holes form from collapsing massive stars [1][2]"*, the
+pipeline later extracts `[1]` and `[2]` and maps them back to `results[0]` and
+`results[1]` — each with the source filename, similarity score, and a text
+snippet. That's what becomes the `Citation` object returned to the user.
 
-Without the numbers, Claude would still answer — but you'd have no way
+Without the numbers, the model would still answer — but you'd have no way
 to trace which claim came from which file.
 
 → Next: **[system-prompt.md](system-prompt.md)**

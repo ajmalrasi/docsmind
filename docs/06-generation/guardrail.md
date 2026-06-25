@@ -28,7 +28,7 @@ Two outcomes:
 **Grounded (normal case):**
 ```json
 {
-  "answer": "Use HNSW when your corpus fits in RAM [1][4]...",
+  "answer": "Black holes form when matter collapses past its event horizon [1][2]...",
   "citations": [...],
   "grounded": true
 }
@@ -47,10 +47,10 @@ Two outcomes:
 
 **Scenario 1 — Question outside the corpus:**
 ```
-Question: "How do I configure Nginx as a reverse proxy?"
+Question: "How do I bake sourdough bread?"
 ```
-The retrieved top-4 chunks are all about FAISS/RAG/Kubernetes. None contain
-Nginx. Claude sees the context, finds nothing relevant, and returns
+The retrieved top-4 chunks are all about black holes, stars, and rockets. None
+mention bread. The model sees the context, finds nothing relevant, and returns
 `INSUFFICIENT_CONTEXT`.
 
 **Scenario 2 — Low-quality retrieval hit:**

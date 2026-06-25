@@ -1,44 +1,38 @@
 # Real Examples — Chunking Your Docs
 
 **TL;DR:** Here's what the chunker actually does to
-[faiss_index_types.md](../../data/sample_docs/faiss_index_types.md) with
+[black_holes.md](../../data/sample_docs/black_holes.md) with
 `chunk_size=512, chunk_overlap=64`.
 
-## The original document (full text)
+## The original document (abridged)
 
 ```
-# FAISS Index Types
+# Black Holes
 
-FAISS provides several index structures that trade retrieval accuracy (recall)
-against query latency and memory footprint.
+A black hole is a region of spacetime where gravity is so strong that nothing —
+not even light — can escape once it crosses the boundary...
 
-## Flat (IndexFlatIP / IndexFlatL2)
-A flat index stores every vector and compares the query against all of them. It
-gives exact, 100% recall but query time grows linearly with the number of
-vectors. Flat is the right choice for small corpora or as a ground-truth baseline
-when benchmarking approximate indexes. With L2-normalized vectors, inner-product
-search (IndexFlatIP) is equivalent to cosine similarity.
+## The event horizon
+The event horizon is the boundary of a black hole, not a physical surface. It is
+the point of no return: anything that crosses it, including light, can never get
+back out...
 
-## IVF (Inverted File Index)
-IVF partitions the vector space into `nlist` cells using k-means and, at query
-time, only searches the `nprobe` cells nearest to the query. Increasing `nprobe`
-raises recall at the cost of latency. IVF requires a training step on a
-representative sample before vectors can be added.
+## The singularity
+At the very center lies the singularity, a point where matter is crushed to
+infinite density and the known laws of physics break down...
 
-## HNSW (Hierarchical Navigable Small World)
-HNSW builds a multi-layer graph and navigates it greedily. It typically delivers
-the best recall-vs-latency tradeoff for in-memory search...
+## How black holes form
+Stellar-mass black holes form when a massive star — typically more than about 20
+times the mass of the Sun — exhausts its fuel and collapses under its own gravity
+in a supernova...
 
-## PQ (Product Quantization)
-PQ compresses vectors into compact codes...
-
-## Choosing an index
-- Small corpus or baseline: Flat.
-- Large corpus, accuracy-sensitive: HNSW.
-- Very large corpus, memory-constrained: IVF-PQ.
+## Accretion disks and Hawking radiation
+Matter spiraling toward a black hole forms a superheated accretion disk...
 ```
 
-This doc is short (~300 words), so the splitter produces **2 chunks**.
+This doc is short (~300 words), so the splitter produces **1 chunk**. A longer
+document would produce several. To show the boundary behavior, imagine it were
+long enough to split into 2 — the example below shows where overlap appears.
 
 ---
 
@@ -47,27 +41,26 @@ This doc is short (~300 words), so the splitter produces **2 chunks**.
 ```
 Chunk {
     id:     "node_001",
-    source: "faiss_index_types.md",
-    text:   "# FAISS Index Types
+    source: "black_holes.md",
+    text:   "# Black Holes
 
-             FAISS provides several index structures that trade retrieval
-             accuracy (recall) against query latency and memory footprint.
+             A black hole is a region of spacetime where gravity is so strong
+             that nothing — not even light — can escape once it crosses the
+             boundary.
 
-             ## Flat (IndexFlatIP / IndexFlatL2)
-             A flat index stores every vector and compares the query against
-             all of them. It gives exact, 100% recall but query time grows
-             linearly with the number of vectors...
+             ## The event horizon
+             The event horizon is the boundary of a black hole, not a physical
+             surface. It is the point of no return: anything that crosses it,
+             including light, can never get back out...
 
-             ## IVF (Inverted File Index)
-             IVF partitions the vector space into `nlist` cells using k-means
-             and, at query time, only searches the `nprobe` cells nearest to
-             the query. Increasing `nprobe` raises recall at the cost of
-             latency. IVF requires a training step on a representative sample
-             before vectors can be added."
+             ## The singularity
+             At the very center lies the singularity, a point where matter is
+             crushed to infinite density and the known laws of physics break
+             down."
 }
 ```
 
-*This chunk ends at the IVF section.*
+*This chunk ends at the singularity section.*
 
 ---
 
@@ -76,22 +69,19 @@ Chunk {
 ```
 Chunk {
     id:     "node_002",
-    source: "faiss_index_types.md",
-    text:   "IVF requires a training step on a representative sample        ← overlap!
-             before vectors can be added.
+    source: "black_holes.md",
+    text:   "At the very center lies the singularity, a point where matter is   ← overlap!
+             crushed to infinite density and the known laws of physics break
+             down.
 
-             ## HNSW (Hierarchical Navigable Small World)
-             HNSW builds a multi-layer graph and navigates it greedily.
-             It typically delivers the best recall-vs-latency tradeoff
-             for in-memory search...
+             ## How black holes form
+             Stellar-mass black holes form when a massive star — typically more
+             than about 20 times the mass of the Sun — exhausts its fuel and
+             collapses under its own gravity in a supernova...
 
-             ## PQ (Product Quantization)
-             PQ compresses vectors into compact codes...
-
-             ## Choosing an index
-             - Small corpus or baseline: Flat.
-             - Large corpus, accuracy-sensitive: HNSW.
-             - Very large corpus, memory-constrained: IVF-PQ."
+             ## Accretion disks and Hawking radiation
+             Matter spiraling toward a black hole forms a superheated accretion
+             disk that emits intense X-rays before crossing the horizon."
 }
 ```
 
@@ -101,18 +91,16 @@ Chunk {
 
 ## What happens at query time
 
-Question: *"Does IVF need training before adding vectors?"*
+Question: *"What is at the center of a black hole?"*
 
 1. The question gets embedded → a vector
 2. FAISS compares it to all chunk vectors
-3. **Chunk 2** scores high because it starts with exactly that sentence
-4. Claude reads Chunk 2 and answers: *"Yes, IVF requires a training step [1]"*
-5. `[1]` maps back to `source: faiss_index_types.md` → citation shown to user
+3. **A chunk containing the singularity description** scores high
+4. The model reads it and answers: *"The singularity, a point of infinite
+   density [1]"*
+5. `[1]` maps back to `source: black_holes.md` → citation shown to user
 
-Without overlap, that sentence lived only at the very end of Chunk 1.
-Chunk 1's embedding had to represent the *whole* IVF + Flat sections —
-not sharp enough on that one sentence. The overlap puts it at the *top* of
-Chunk 2, where it dominates the embedding. Retrieval improves.
+The `source` field is the thread that ties the answer back to the exact file.
 
 → Back to: **[README.md](README.md)**
 → Next topic: **[02-embeddings/README.md](../02-embeddings/README.md)**

@@ -16,8 +16,8 @@ chunks slightly so ideas at the boundary don't get lost.
 
 **Q: Why chunk at all?**
 Because embedding a whole document into one vector averages out all its topics
-into a blurry signal. A chunk about HNSW gives a sharp, focused vector. That's
-what makes retrieval precise.
+into a blurry signal. A chunk about event horizons gives a sharp, focused
+vector. That's what makes retrieval precise.
 
 **Q: Big chunks vs small chunks?**
 Small → sharper retrieval, less context per hit.

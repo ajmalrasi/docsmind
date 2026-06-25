@@ -1,14 +1,14 @@
-# Claude Generates the Answer
+# The LLM Generates the Answer
 
-**TL;DR:** Claude receives the system prompt + numbered context + question.
-It produces a grounded answer with `[n]` citation markers. The pipeline
-calls the Anthropic SDK directly — no LangChain wrapper.
+**TL;DR:** The LLM receives the system prompt + numbered context + question.
+It produces a grounded answer with `[n]` citation markers. The pipeline can call
+either a cloud model (Anthropic, direct SDK) or a local model (Ollama) behind the
+same `LLMClient` interface.
 
-## The LLM call
+## The two clients
 
 ```python
-# docsmind/llm/cloud_client.py
-
+# docsmind/llm/cloud_client.py  — cloud path (Anthropic)
 class CloudLLMClient(LLMClient):
     def __init__(self, model: str) -> None:
         self.model = model
@@ -16,17 +16,35 @@ class CloudLLMClient(LLMClient):
 
     def generate(self, system: str, prompt: str, max_tokens: int) -> str:
         response = self._client.messages.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": prompt}],
+            model=self.model, max_tokens=max_tokens,
+            system=system, messages=[{"role": "user", "content": prompt}],
         )
-        return "".join(
-            block.text for block in response.content if block.type == "text"
-        ).strip()
+        return "".join(b.text for b in response.content if b.type == "text").strip()
 ```
 
-## What Claude receives
+```python
+# docsmind/llm/local_client.py  — local path (Ollama)
+class LocalLLMClient(LLMClient):
+    def __init__(self, model: str, base_url: str = "http://localhost:11434") -> None:
+        self.model = model
+        self._base_url = base_url.rstrip("/")
+        self._client = httpx.Client(timeout=300.0)
+
+    def generate(self, system: str, prompt: str, max_tokens: int) -> str:
+        r = self._client.post(f"{self._base_url}/api/chat", json={
+            "model": self.model,
+            "messages": [{"role": "system", "content": system},
+                         {"role": "user", "content": prompt}],
+            "stream": False, "options": {"num_predict": max_tokens},
+        })
+        r.raise_for_status()
+        return r.json()["message"]["content"].strip()
+```
+
+`factory.build_llm()` picks one based on `DOCSMIND_LLM_PROVIDER` (`cloud` or
+`local`). The pipeline never knows which — it just calls `.generate()`.
+
+## What the LLM receives
 
 ```
 SYSTEM:
@@ -36,49 +54,51 @@ SYSTEM:
 USER:
   Context passages:
 
-  [1] (source: faiss_index_types.md)
-  HNSW builds a multi-layer graph and navigates it greedily...
+  [1] (source: black_holes.md)
+  A black hole is a region of spacetime where gravity is so strong that nothing —
+  not even light — can escape. Stellar-mass black holes form when a massive star
+  collapses in a supernova...
 
-  [2] (source: faiss_index_types.md)
-  IVF partitions the vector space into nlist cells...
+  [2] (source: stellar_lifecycle.md)
+  A star much more massive than the Sun... collapses and rebounds in a supernova;
+  the most massive cores collapse into a black hole...
 
-  [3] (source: faiss_index_types.md)
-  HNSW uses more memory than IVF...
+  [3] (source: solar_system.md)
+  The Sun is a main-sequence star that fuses hydrogen into helium...
 
-  [4] (source: faiss_index_types.md)
-  Large corpus: HNSW. Memory-constrained: IVF-PQ.
+  [4] (source: rocket_propulsion.md)
+  To leave Earth's gravity, a spacecraft must reach escape velocity...
 
-  Question: When should I use HNSW over IVF-PQ?
+  Question: How do black holes form?
 
   Answer:
 ```
 
-## What Claude returns
+## What the LLM returns (real output from the local model)
 
 ```
-Use HNSW [1][4] when your dataset fits in RAM and you need low query
-latency — it typically delivers the best recall-vs-latency tradeoff for
-in-memory search [1]. Note that HNSW uses more memory than IVF because it
-stores graph edges alongside the vectors [3].
-
-Use IVF-PQ [4] when memory is the primary constraint. IVF only searches
-the nearest cluster cells at query time [2], and combining it with Product
-Quantization compresses the vectors significantly for billion-scale corpora.
+Black holes form when matter is compressed into a small enough volume that its
+escape velocity exceeds the speed of light [1]. This occurs in two main ways:
+stellar-mass black holes form from the collapse of massive stars, typically more
+than about 20 times the mass of the Sun, following a supernova event [1][2], and
+supermassive black holes form at the centers of galaxies, including our Milky
+Way, with masses in the millions to billions of times that of the Sun [1][3].
 ```
 
-Every claim is pinned to a passage number. The pipeline can now extract
-`{1, 2, 3, 4}` from the text and map them to sources.
+Every claim is pinned to a passage number. The pipeline extracts `{1, 2, 3}`
+from the text and maps them to sources. Note the model used `[1]`, `[2]`, `[3]`
+and ignored `[4]` (the rocket passage) — it only cited what it actually needed.
 
 ## Why direct Anthropic SDK and not LangChain?
 
-Using the SDK directly means:
+For the cloud path, using the SDK directly means:
 - No abstraction tax — full access to every Anthropic API parameter
 - No hidden retry logic or model routing you didn't ask for
 - Easy to add system-level features (batching, prompt caching, streaming)
 - Simpler to debug — fewer layers between you and the API response
 
 LangChain's `ChatAnthropic` wrapper is a convenience layer. For a project
-where the LLM call is a critical path component, direct SDK gives more
+where the LLM call is a critical-path component, direct SDK gives more
 control and less mystery.
 
 ## The pluggable interface
@@ -87,28 +107,30 @@ control and less mystery.
 # docsmind/llm/base.py
 
 class LLMClient(ABC):
-    @property
-    @abstractmethod
-    def model(self) -> str: ...
+    model: str
 
     @abstractmethod
     def generate(self, system: str, prompt: str, max_tokens: int) -> str: ...
 ```
 
-`CloudLLMClient` implements this. Phase 4 will add `LocalLLMClient` (vLLM /
-Ollama) behind the same interface. The pipeline doesn't know whether it's
-talking to Claude or a local model — it just calls `.generate()`.
+Both `CloudLLMClient` and `LocalLLMClient` implement this. The local client was
+added to run without an API key — a minimal preview of the Phase 4 `LLMRouter`,
+which will add automatic local→cloud fallback and model benchmarking.
 
-## Configuring the model
+## Configuring the backend
 
 ```bash
-# .env
+# .env — local (no API key needed)
+DOCSMIND_LLM_PROVIDER=local
+DOCSMIND_LOCAL_LLM_MODEL=deepseek-coder-v2:16b-lite-instruct-q4_K_M
+DOCSMIND_OLLAMA_BASE_URL=http://localhost:11434
+
+# .env — cloud (needs ANTHROPIC_API_KEY)
+DOCSMIND_LLM_PROVIDER=cloud
 DOCSMIND_CLOUD_LLM_MODEL=claude-haiku-4-5-20251001   # faster, cheaper
-DOCSMIND_CLOUD_LLM_MODEL=claude-sonnet-4-6           # balanced
-DOCSMIND_CLOUD_LLM_MODEL=claude-opus-4-8             # default, most capable
 ```
 
-For high-volume benchmarking (Phase 6 eval), swap to Haiku to reduce cost.
-For production quality, use Sonnet or Opus.
+For keyless local testing, use the local provider. For top quality, point at a
+cloud model. Same pipeline either way.
 
 → Next: **[citation-extraction.md](citation-extraction.md)**

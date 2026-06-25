@@ -7,7 +7,7 @@ meanings close together in that 384-dimensional space.
 ## The transformation
 
 ```
-Text:      "HNSW builds a multi-layer graph and navigates it greedily"
+Text:      "The event horizon is the boundary of a black hole"
               ↓  (bge-small-en-v1.5 model)
 Embedding: [0.12, -0.45, 0.78, 0.32, -0.21, 0.05, ..., 0.18]
             └─────────────────────────────────────────────────┘
@@ -28,12 +28,12 @@ space.
 A rough intuition (positions don't actually mean this, but it helps):
 
 ```
-Position 0: "Is this about data structures?"  → 0.12 (somewhat yes)
-Position 1: "Is this about speed?"            → -0.45 (not particularly)
-Position 2: "Is this about graphs?"           → 0.78 (strongly yes)
-Position 3: "Is this about memory?"           → 0.32 (a bit)
+Position 0: "Is this about astronomy?"     → 0.12 (somewhat yes)
+Position 1: "Is this about motion/speed?"  → -0.45 (not particularly)
+Position 2: "Is this about gravity?"       → 0.78 (strongly yes)
+Position 3: "Is this about light?"         → 0.32 (a bit)
 ...
-Position 383: (some other learned pattern)    → 0.18
+Position 383: (some other learned pattern) → 0.18
 ```
 
 ## Why 384 dimensions?

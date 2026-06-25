@@ -43,13 +43,13 @@ Step 4: INDEX
 ## Phase B: Query (every request)
 
 ```
-POST /query  {"question": "When should I use HNSW over IVF-PQ?"}
+POST /query  {"question": "How do black holes form?"}
 ```
 
 ```
 Step 1: EMBED QUESTION
   same bge-small model
-  → "When should I use HNSW over IVF-PQ?" → 384-float vector, normalized
+  → "How do black holes form?" → 384-float vector, normalized
   → MUST use same model as ingest (same vector space)
 
          ↓
@@ -60,23 +60,24 @@ Step 2: RETRIEVE
   → returns top-4 by score
   → looks up text/source for each position
   → produces: [SearchResult(chunk, score), ...]
+              0.8141 black_holes.md, 0.6333 stellar_lifecycle.md, ...
 
          ↓
 
 Step 3: BUILD CONTEXT
   RAGPipeline._build_context(results)
   → formats chunks as numbered passages:
-      [1] (source: faiss_index_types.md)
-      HNSW builds a multi-layer graph...
+      [1] (source: black_holes.md)
+      A black hole is a region of spacetime where gravity...
 
-      [2] (source: faiss_index_types.md)
-      IVF partitions the vector space...
+      [2] (source: stellar_lifecycle.md)
+      A star much more massive than the Sun... supernova...
   → produces: a single string for the LLM
 
          ↓
 
 Step 4: GENERATE + CITE
-  Anthropic Claude (claude-opus-4-8 by default)
+  the LLM (local Ollama model, or cloud Claude)
   → receives: system prompt + context passages + question
   → system prompt enforces: cite with [1][2][3], reply INSUFFICIENT_CONTEXT
     if context is not enough
@@ -94,21 +95,21 @@ Step 5: EXTRACT CITATIONS
 
 RESPONSE
   QueryResponse {
-    answer: "Use HNSW when accuracy matters and data fits in RAM [1].
-             Use IVF-PQ for billion-scale, memory-constrained setups [2].",
+    answer: "Black holes form when matter collapses past its event horizon [1].
+             Stellar-mass black holes form from collapsing massive stars [1][2].",
     citations: [
-      {marker: 1, source: "faiss_index_types.md", score: 0.891, snippet: "..."},
-      {marker: 2, source: "faiss_index_types.md", score: 0.874, snippet: "..."}
+      {marker: 1, source: "black_holes.md", score: 0.8141, snippet: "..."},
+      {marker: 2, source: "stellar_lifecycle.md", score: 0.6333, snippet: "..."}
     ],
-    model: "claude-opus-4-8",
+    model: "deepseek-coder-v2:16b-lite-instruct-q4_K_M",
     grounded: true,
-    latency_ms: 843.2
+    latency_ms: 14637.0
   }
 ```
 
 ## The guardrail
 
-If Claude returns `INSUFFICIENT_CONTEXT` anywhere in the answer:
+If the LLM returns `INSUFFICIENT_CONTEXT` anywhere in the answer:
 - `grounded = false`
 - `citations = []`
 - The raw `INSUFFICIENT_CONTEXT` string is returned as the answer

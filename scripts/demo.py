@@ -10,7 +10,7 @@ import sys
 from docsmind.config import get_settings
 from docsmind.factory import build_pipeline
 
-DEFAULT_QUESTION = "What FAISS index types trade recall for speed, and how?"
+DEFAULT_QUESTION = "How do black holes form?"
 
 
 def main() -> None:
