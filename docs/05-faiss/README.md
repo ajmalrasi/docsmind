@@ -13,6 +13,7 @@ where id=42."
 | [indexflatip-explained.md](indexflatip-explained.md) | Phase 1's index — what it does, why it's the right choice for now |
 | [how-search-works.md](how-search-works.md) | Step-by-step: from query vector to top-k results |
 | [phase1-vs-phase2.md](phase1-vs-phase2.md) | Flat vs IVF vs HNSW vs PQ — the full tradeoff table |
+| [benchmark-results.md](benchmark-results.md) | Phase 2: real measured recall@k, latency & memory for all four |
 | [code-walkthrough.md](code-walkthrough.md) | The actual Phase 1 code explained line by line |
 
 ## 🎯 Interview Q&A

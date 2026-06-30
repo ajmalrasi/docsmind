@@ -11,7 +11,11 @@ dependencies = [
     "sentence-transformers>=3.0",
     # Vector store
     "faiss-cpu>=1.8",
+    "qdrant-client>=1.10",  # Phase 2b: Qdrant backend (local-path or server)
     "numpy>=1.26",
+    # Hybrid retrieval (Phase 3): BM25 sparse retrieval; the cross-encoder
+    # reranker reuses sentence-transformers (already a dependency above).
+    "rank-bm25>=0.2",
     # Cloud LLM (generation path)
     "anthropic>=0.40",
     # Local LLM (Ollama HTTP client)

@@ -1,7 +1,9 @@
 """The pluggable VectorStore interface.
 
-Every backend (FAISS in Phase 1; Qdrant in Phase 2) implements this contract so
-retrieval code is backend-agnostic.
+Every backend (FAISS in Phase 1; Qdrant in Phase 2b) implements this contract so
+retrieval code is backend-agnostic. The hybrid retriever (Phase 3) also reads the
+stored ``chunks`` to build its in-memory BM25 index, so that is part of the
+contract too.
 """
 
 from __future__ import annotations
@@ -36,3 +38,8 @@ class VectorStore(ABC):
     @abstractmethod
     def index_type(self) -> str:
         """Identifier for the underlying index (e.g. 'flat')."""
+
+    @property
+    @abstractmethod
+    def chunks(self) -> list[Chunk]:
+        """All indexed chunks, in insertion order. Used by the BM25 retriever."""

@@ -1,0 +1,20 @@
+{
+  "_comment": "Labeled retrieval eval set. 'source' is the doc that should answer the query (source-level relevance). 'kind' tags whether the query favors exact-term matching (BM25) or meaning (dense) — used only for reading the results, not for scoring.",
+  "queries": [
+    { "q": "What is the Schwarzschild radius?", "source": "black_holes.md", "kind": "exact" },
+    { "q": "What sits at the center of the Milky Way?", "source": "black_holes.md", "kind": "exact" },
+    { "q": "Why can nothing get back out once it crosses the boundary?", "source": "black_holes.md", "kind": "paraphrase" },
+    { "q": "What is specific impulse?", "source": "rocket_propulsion.md", "kind": "exact" },
+    { "q": "Why can a rocket work without any outside air?", "source": "rocket_propulsion.md", "kind": "paraphrase" },
+    { "q": "Why are large launch vehicles built in stages?", "source": "rocket_propulsion.md", "kind": "exact" },
+    { "q": "How fast must a spacecraft go to leave Earth's gravity?", "source": "rocket_propulsion.md", "kind": "paraphrase" },
+    { "q": "What fraction of the Solar System's mass is the Sun?", "source": "solar_system.md", "kind": "exact" },
+    { "q": "What is the difference between gas giants and ice giants?", "source": "solar_system.md", "kind": "exact" },
+    { "q": "What makes a dwarf planet different from a regular planet?", "source": "solar_system.md", "kind": "paraphrase" },
+    { "q": "What happens to a star like the Sun when it runs out of fuel?", "source": "stellar_lifecycle.md", "kind": "paraphrase" },
+    { "q": "What is left behind after a supernova?", "source": "stellar_lifecycle.md", "kind": "exact" },
+    { "q": "How high above Earth does the ISS orbit?", "source": "the_iss.md", "kind": "exact" },
+    { "q": "Why do astronauts on the station appear weightless?", "source": "the_iss.md", "kind": "paraphrase" },
+    { "q": "How many sunrises does the ISS crew see each day?", "source": "the_iss.md", "kind": "exact" }
+  ]
+}

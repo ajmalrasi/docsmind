@@ -92,4 +92,9 @@ Run all four on the same corpus and measure:
 Then decide which index type to use based on those numbers — not theory.
 That's the "benchmark notebook" deliverable of Phase 2.
 
-→ Next: **[code-walkthrough.md](code-walkthrough.md)**
+**✅ Done.** The benchmark is built (`scripts/benchmark.py`) and the real
+measured numbers — recall@k, latency, build time, and memory for all four index
+types at 50k and 500k vectors — are in
+**[benchmark-results.md](benchmark-results.md)**.
+
+→ Next: **[benchmark-results.md](benchmark-results.md)**

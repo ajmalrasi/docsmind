@@ -40,6 +40,14 @@ demo: ## Ingest if needed, then run a sample query with citations
 test: ## Run the offline test suite
 	$(VENV)/bin/pytest
 
+.PHONY: benchmark
+benchmark: ## Benchmark FAISS index types (recall@k vs latency vs memory)
+	$(VENV)/bin/python -m scripts.benchmark
+
+.PHONY: eval
+eval: ## Retrieval eval: dense vs hybrid (add ARGS=--rerank for the cross-encoder)
+	$(VENV)/bin/python -m scripts.retrieval_eval $(ARGS)
+
 # ---------- beast (remote) ----------
 
 .PHONY: sync
@@ -68,3 +76,7 @@ beast-test: sync ## Run tests on beast
 .PHONY: beast-serve
 beast-serve: sync ## Serve from beast on :8000 (reachable on the LAN)
 	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/uvicorn docsmind.serving.app:app --host 0.0.0.0 --port 8000"
+
+.PHONY: beast-eval
+beast-eval: sync ## Run the retrieval eval on beast with the reranker (GPU)
+	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/python -m scripts.retrieval_eval --rerank"

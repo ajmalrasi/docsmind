@@ -49,4 +49,5 @@ class HealthResponse(BaseModel):
     status: str
     index_size: int
     index_type: str
+    retrieval_mode: str
     model: str

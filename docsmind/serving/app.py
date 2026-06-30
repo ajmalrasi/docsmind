@@ -37,11 +37,12 @@ app = FastAPI(title="DocsMind", version="0.1.0", lifespan=lifespan)
 def health() -> HealthResponse:
     settings = _state["settings"]
     pipeline = _state.get("pipeline")
-    index_size = pipeline._retriever._store.size if pipeline else 0
+    store = pipeline._retriever._store if pipeline else None
     return HealthResponse(
         status="ok" if pipeline else "no_index",
-        index_size=index_size,
-        index_type=settings.index_type,
+        index_size=store.size if store else 0,
+        index_type=store.index_type if store else settings.index_type,
+        retrieval_mode=settings.retrieval_mode,
         model=settings.cloud_llm_model,
     )
 
