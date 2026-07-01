@@ -72,17 +72,23 @@ const SITE = [
     { file:"chunking-questions.md", title:"Chunking Questions", quiz:true },
     { file:"embedding-questions.md", title:"Embedding Questions", quiz:true },
     { file:"retrieval-questions.md", title:"Retrieval Questions", quiz:true },
+    { file:"index-questions.md", title:"Index & Vector DB Questions", quiz:true },
+    { file:"hybrid-questions.md", title:"Hybrid & Reranking Questions", quiz:true },
     { file:"generation-questions.md", title:"Generation Questions", quiz:true },
     { file:"pipeline-questions.md", title:"Pipeline Questions", quiz:true },
     { file:"cheat-sheet.md", title:"Cheat Sheet — One Page" },
   ]},
   { label:"9 · Hybrid Retrieval", dir:"09-hybrid-retrieval", items:[
     { file:"README.md", title:"Overview" },
+    { file:"reranking-deep-dive.md", title:"Reranking — The Deep Dive" },
     { file:"search-evaluation.md", title:"Search Evaluation" },
     { file:"eval-results.md", title:"Eval Results — Does Hybrid Win?" },
   ]},
   { label:"10 · Qdrant", dir:"10-qdrant", items:[
     { file:"README.md", title:"Overview" },
+  ]},
+  { label:"11 · HyDE (Concept)", dir:"11-hyde", items:[
+    { file:"README.md", title:"HyDE — Search With a Fake Answer" },
   ]},
 ];
 

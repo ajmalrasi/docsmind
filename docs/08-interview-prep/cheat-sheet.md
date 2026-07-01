@@ -76,6 +76,77 @@ trade ~1–5% recall for huge speed gains. Usually acceptable for RAG.
 
 ---
 
+## Index Types (Phase 2 — real benchmark numbers)
+
+**Flat vs IVF vs HNSW vs IVFPQ?**
+At 50k vectors: flat 0.78ms/100% recall; IVF 0.10ms/90%; HNSW 0.40ms/86%
+(1.18x memory); IVFPQ 0.09ms/33% recall but **25x less memory**. Flat scales
+O(N): 0.78ms@50k → 7.2ms@500k — that line is why ANN indexes exist.
+
+**Which does your pipeline use?**
+Flat. Corpus is tiny; exact search in <1ms. Switching to HNSW would be
+premature optimization. The skill is knowing where flat crosses your latency
+budget — I measured it.
+
+**What are nprobe / ef_search?**
+The recall-vs-speed dial on IVF / HNSW, turned at query time: spend more
+compute per query, recover more recall.
+
+**Why benchmark on clustered synthetic vectors?**
+Real embeddings cluster. Uniform random vectors flatter IVF and hide
+production recall loss. Benchmark on data shaped like your data.
+
+---
+
+## Qdrant vs FAISS (Phase 2b)
+
+**Why add Qdrant?**
+Operations, not speed: many API replicas share one store, live upserts,
+metadata filtering while searching. FAISS = one process's memory.
+
+**What did the switch cost?**
+A network hop per query, a service to run, and exact flat search became
+approximate (Qdrant builds HNSW by default).
+
+**How is it swappable?**
+Both behind one `VectorStore` interface, chosen by a `vector_backend` config
+setting. Pipeline never knows which is underneath.
+
+---
+
+## Hybrid & Reranking (Phase 3 — real eval numbers)
+
+**Why hybrid?**
+Dense and BM25 fail differently: dense blurs rare exact terms, BM25 misses
+paraphrase. Measured win: "supernova" query — dense ranked it #2, BM25 caught
+the exact term, RRF lifted it to #1. Hit@1 0.93 → 1.00 at fine chunking.
+
+**How do you fuse two score scales?**
+You don't — RRF uses only rank position: `1/(k+rank)` summed across lists,
+k=60. No normalization, no per-corpus tuning.
+
+**Bi-encoder vs cross-encoder?**
+Bi-encoder embeds question and chunk separately — fast, precomputable.
+Cross-encoder reads the pair together — accurate but per-pair cost, so it
+only reranks the ~20 fused candidates. A funnel: cheap scan → careful check.
+
+**What did reranking buy?**
+The most reliable win: fixed the one miss in every configuration tested
+(Hit@1 0.93 → 1.00). Hybrid's gain depended on chunk size; the reranker's
+didn't.
+
+**Your metrics disagreed — explain.**
+Hybrid+rerank raised Hit@1/MRR but lowered Recall@5/NDCG@5: better single
+best chunk, less same-doc coverage. Pointed Q&A wants Hit@1; summarization
+wants recall. Pick the metric that matches the task.
+
+**How did you validate retrieval?**
+15 labeled queries (exact-term + paraphrase mix), same metrics across
+dense / hybrid / hybrid+rerank, one command (`make eval`). Change one
+variable, re-run, compare.
+
+---
+
 ## Generation
 
 **Why number the context passages [1][2][3]?**

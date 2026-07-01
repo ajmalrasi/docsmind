@@ -12,6 +12,8 @@ understands it. This folder collects every "why X over Y" question by topic.
 | [chunking-questions.md](chunking-questions.md) | Chunk size, overlap, splitter type tradeoffs |
 | [embedding-questions.md](embedding-questions.md) | Self-hosted vs cloud, bi-encoder vs cross-encoder, dimensions |
 | [retrieval-questions.md](retrieval-questions.md) | FAISS vs Pinecone, Flat vs HNSW, exact vs approximate |
+| [index-questions.md](index-questions.md) | Flat/IVF/HNSW/PQ with real benchmark numbers, Qdrant vs FAISS |
+| [hybrid-questions.md](hybrid-questions.md) | BM25, RRF, cross-encoder reranking, eval results, debugging retrieval |
 | [generation-questions.md](generation-questions.md) | Prompting Claude, citations, guardrail, latency, streaming |
 | [pipeline-questions.md](pipeline-questions.md) | RAG vs fine-tuning, hallucination, top-k, LangChain vs SDK |
 | [cheat-sheet.md](cheat-sheet.md) | One page — all key "why this" answers in 2 sentences each |

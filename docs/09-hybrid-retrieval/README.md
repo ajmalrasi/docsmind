@@ -80,7 +80,8 @@ on the ~20 candidates RRF already shortlisted.
 It's **off by default** (`rerank_enabled=False`) — it downloads a model and wants
 the beast GPU. One env var turns it on.
 
-Code: [`reranker.py`](../../docsmind/retrieval/reranker.py)
+Code: [`reranker.py`](../../docsmind/retrieval/reranker.py) ·
+Full depth writeup: [reranking-deep-dive.md](reranking-deep-dive.md)
 
 ## How it's wired
 
