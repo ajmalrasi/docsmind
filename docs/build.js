@@ -90,6 +90,36 @@ const SITE = [
   { label:"11 · HyDE (Concept)", dir:"11-hyde", items:[
     { file:"README.md", title:"HyDE — Search With a Fake Answer" },
   ]},
+  { label:"12 · Tool Calling", dir:"12-tool-calling", items:[
+    { file:"README.md", title:"Tool Calling — The LLM Asks, Your Code Answers" },
+  ]},
+  { label:"13 · MCP", dir:"13-mcp", items:[
+    { file:"README.md", title:"MCP — A USB Port for Tools" },
+  ]},
+  { label:"14 · Agent Architectures", dir:"14-agent-architectures", items:[
+    { file:"README.md", title:"Agent Architectures — One Loop vs Many" },
+  ]},
+  { label:"15 · LLM Serving Internals", dir:"15-llm-serving-internals", items:[
+    { file:"README.md", title:"LLM Serving Internals — KV Cache, Batching, Speculative Decoding" },
+  ]},
+  { label:"16 · Python Concurrency", dir:"16-python-concurrency", items:[
+    { file:"README.md", title:"Python Concurrency — Sync, Async, Threads, Processes" },
+  ]},
+  { label:"17 · FastAPI & HTTP Semantics", dir:"17-fastapi-http-semantics", items:[
+    { file:"README.md", title:"FastAPI & HTTP Semantics — GET vs POST" },
+  ]},
+  { label:"18 · LLM Security", dir:"18-llm-security", items:[
+    { file:"README.md", title:"LLM Security — PII, Injection, Jailbreaks" },
+  ]},
+  { label:"19 · Fine-Tuning", dir:"19-fine-tuning", items:[
+    { file:"README.md", title:"Fine-Tuning — When RAG Isn't the Right Tool" },
+  ]},
+  { label:"20 · Production Monitoring", dir:"20-production-monitoring", items:[
+    { file:"README.md", title:"Production Monitoring — Cost, Latency, Quality, Drift" },
+  ]},
+  { label:"21 · Multimodal Document RAG", dir:"21-multimodal-document-rag", items:[
+    { file:"README.md", title:"Multimodal Document RAG — PDFs, Tables, Scans, Charts" },
+  ]},
 ];
 
 /* ----------------------------- markdown parser ----------------------------- */
