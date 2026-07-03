@@ -18,7 +18,7 @@
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.4);
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;overflow-x:hidden;scroll-behavior:smooth}
+  html,body{margin:0;padding:0;scroll-behavior:smooth}
   body{
     background:var(--bg); color:var(--text);
     font:16px/1.7 ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;
@@ -29,11 +29,11 @@
   a{color:var(--link); text-decoration:none}
   a:hover{text-decoration:underline}
 
-  .app{display:grid; grid-template-columns:300px minmax(0,1fr); min-height:100vh}
+  .app{display:grid; grid-template-columns:300px minmax(0,1fr); min-height:100vh; min-height:100dvh}
 
   /* sidebar */
   .sidebar{background:var(--bg-side); border-right:1px solid var(--border);
-    position:sticky; top:0; height:100vh; overflow-y:auto; padding-bottom:env(safe-area-inset-bottom)}
+    position:sticky; top:0; height:100vh; height:100dvh; overflow-y:auto; padding-bottom:env(safe-area-inset-bottom)}
   .brand{padding:20px 20px 14px; border-bottom:1px solid var(--border);
     position:sticky; top:0; background:var(--bg-side); z-index:2}
   .brand h1{font-size:15px; margin:0 0 3px; letter-spacing:.2px; font-weight:700}
@@ -62,7 +62,7 @@
   .hidden{display:none !important}
 
   /* main */
-  .main{min-width:0}
+  .main{min-width:0; overflow-x:hidden}
   .topbar{display:none; align-items:center; gap:10px;
     padding:10px max(14px,env(safe-area-inset-left)) 10px max(14px,env(safe-area-inset-right));
     border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;
