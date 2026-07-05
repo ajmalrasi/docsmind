@@ -87,38 +87,67 @@ const SITE = [
   { label:"10 · Qdrant", dir:"10-qdrant", items:[
     { file:"README.md", title:"Overview" },
   ]},
-  { label:"11 · HyDE (Concept)", dir:"11-hyde", items:[
-    { file:"README.md", title:"HyDE — Search With a Fake Answer" },
+  { label:"11 · HyDE", dir:"11-hyde", items:[
+    { file:"README.md", title:"Overview" },
+    { file:"problem-and-fix.md", title:"The Problem and the Fix" },
+    { file:"code-seam-and-tradeoffs.md", title:"The Code Seam and the Cost" },
+    { file:"query-transformations.md", title:"Query Transformations — The Family" },
   ]},
   { label:"12 · Tool Calling", dir:"12-tool-calling", items:[
-    { file:"README.md", title:"Tool Calling — The LLM Asks, Your Code Answers" },
+    { file:"README.md", title:"Overview" },
+    { file:"the-loop.md", title:"The Loop — Request, Execute, Continue" },
+    { file:"code-seam.md", title:"The Code Seam — Two Precise Places" },
+    { file:"reliability-and-security.md", title:"Reliability & Security — The Real Work" },
   ]},
   { label:"13 · MCP", dir:"13-mcp", items:[
-    { file:"README.md", title:"MCP — A USB Port for Tools" },
+    { file:"README.md", title:"Overview" },
+    { file:"why-a-protocol.md", title:"Why a Protocol — The N × M Problem" },
+    { file:"docsmind-as-a-server.md", title:"DocsMind as a Server — and Why Not Yet" },
   ]},
   { label:"14 · Agent Architectures", dir:"14-agent-architectures", items:[
-    { file:"README.md", title:"Agent Architectures — One Loop vs Many" },
+    { file:"README.md", title:"Overview" },
+    { file:"framework-comparison.md", title:"Frameworks — Four Tools, Four Layers" },
+    { file:"patterns.md", title:"Single vs Multi-Agent vs Supervisor" },
+    { file:"docsmind-choice.md", title:"DocsMind's Choice — One LangGraph Loop" },
   ]},
   { label:"15 · LLM Serving Internals", dir:"15-llm-serving-internals", items:[
-    { file:"README.md", title:"LLM Serving Internals — KV Cache, Batching, Speculative Decoding" },
+    { file:"README.md", title:"Overview" },
+    { file:"kv-cache.md", title:"KV Cache — Memory for Compute" },
+    { file:"continuous-batching.md", title:"Continuous Batching — No Idle GPU" },
+    { file:"speculative-decoding.md", title:"Speculative Decoding — Guess & Verify" },
   ]},
   { label:"16 · Python Concurrency", dir:"16-python-concurrency", items:[
-    { file:"README.md", title:"Python Concurrency — Sync, Async, Threads, Processes" },
+    { file:"README.md", title:"Overview" },
+    { file:"four-models.md", title:"Sync, Async, Threads, Processes & the GIL" },
+    { file:"docsmind-server.md", title:"DocsMind's Server & the Async Footgun" },
   ]},
   { label:"17 · FastAPI & HTTP Semantics", dir:"17-fastapi-http-semantics", items:[
-    { file:"README.md", title:"FastAPI & HTTP Semantics — GET vs POST" },
+    { file:"README.md", title:"Overview" },
+    { file:"get-vs-post.md", title:"GET vs POST — Semantics, Not Convention" },
+    { file:"request-contract.md", title:"The Request/Response Contract" },
+    { file:"async-endpoint.md", title:"Building a Genuinely Async Endpoint" },
   ]},
   { label:"18 · LLM Security", dir:"18-llm-security", items:[
-    { file:"README.md", title:"LLM Security — PII, Injection, Jailbreaks" },
+    { file:"README.md", title:"Overview" },
+    { file:"five-problems.md", title:"The Five Problems" },
+    { file:"code-seams.md", title:"The Code Seams — Where Defenses Slot In" },
+    { file:"red-team-validation.md", title:"Costs, Severity & Red-Team Validation" },
   ]},
   { label:"19 · Fine-Tuning", dir:"19-fine-tuning", items:[
-    { file:"README.md", title:"Fine-Tuning — When RAG Isn't the Right Tool" },
+    { file:"README.md", title:"Overview" },
+    { file:"rag-vs-fine-tuning.md", title:"RAG vs Fine-Tuning — Knowledge vs Behavior" },
+    { file:"lora-qlora-peft-rlhf.md", title:"LoRA, QLoRA, PEFT, RLHF — Untangled" },
+    { file:"tool-call-fix-path.md", title:"The Tool-Call Fix Path, in Cost Order" },
   ]},
   { label:"20 · Production Monitoring", dir:"20-production-monitoring", items:[
-    { file:"README.md", title:"Production Monitoring — Cost, Latency, Quality, Drift" },
+    { file:"README.md", title:"Overview" },
+    { file:"four-signals.md", title:"The Four Signals — Cost, Latency, Quality, Drift" },
+    { file:"wiring-it-in.md", title:"Wiring It In — Seams & Fire-Testing" },
   ]},
   { label:"21 · Multimodal Document RAG", dir:"21-multimodal-document-rag", items:[
-    { file:"README.md", title:"Multimodal Document RAG — PDFs, Tables, Scans, Charts" },
+    { file:"README.md", title:"Overview" },
+    { file:"four-content-types.md", title:"Four Content Types, Four Extraction Problems" },
+    { file:"classify-route-normalize.md", title:"The Design — Classify, Route, Normalize" },
   ]},
 ];
 
