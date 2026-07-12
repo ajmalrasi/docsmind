@@ -289,6 +289,7 @@ const SECTIONS = {
   "19 · Fine-Tuning":      { icon:"🎛️", accent:"#7a5fd0", tag:"When RAG isn't the right tool" },
   "20 · Production Monitoring": { icon:"📈", accent:"#3f8fbf", tag:"Cost, latency, quality, drift" },
   "21 · Multimodal Document RAG": { icon:"📄", accent:"#b58a2a", tag:"PDFs, tables, scans, charts — an ingest problem" },
+  "22 · LangGraph":        { icon:"🕸️", accent:"#5a7fd6", tag:"State, nodes, edges — build the agent graph" },
 };
 
 module.exports = { D, DIAGRAMS, SECTIONS, fig };

@@ -47,15 +47,16 @@ question  → embed ──────────────────→ se
 | 19 🎛️ | [19-fine-tuning/](19-fine-tuning/) | When RAG isn't the right tool — LoRA/QLoRA/PEFT/RLHF untangled |
 | 20 📈 | [20-production-monitoring/](20-production-monitoring/) | Cost, latency, quality, drift — four signals, not one dashboard |
 | 21 📄 | [21-multimodal-document-rag/](21-multimodal-document-rag/) | PDFs, tables, scans, charts — why it's an ingest problem |
+| 22 🕸️ | [22-langgraph/](22-langgraph/) | State, nodes, edges — build the agent graph, and "show me a node" |
 
 ## How to use this
 
-- **First time:** follow the numbers, 1 → 21. The pipeline (1–7) is the
+- **First time:** follow the numbers, 1 → 22. The pipeline (1–7) is the
   skeleton everything else hangs on.
 - **Stuck on a concept:** each folder has a `README.md` overview that links
   to every file inside.
 - **Interview prep:** go straight to `08-interview-prep/` — and note every
-  section 9–21 ends its overview with a 🎯 Interview Q&A of its own.
+  section 9–22 ends its overview with a 🎯 Interview Q&A of its own.
 - **See the real code:** every file links to the actual source file it's
   explaining, or names the exact seam where a not-yet-built feature lands.
 

@@ -149,6 +149,12 @@ const SITE = [
     { file:"four-content-types.md", title:"Four Content Types, Four Extraction Problems" },
     { file:"classify-route-normalize.md", title:"The Design — Classify, Route, Normalize" },
   ]},
+  { label:"22 · LangGraph", dir:"22-langgraph", items:[
+    { file:"README.md", title:"Overview" },
+    { file:"state-nodes-edges.md", title:"State, Nodes, Edges — The Whole Model" },
+    { file:"build-a-graph.md", title:"Build a Graph — Retrieve → Generate" },
+    { file:"conditional-edges.md", title:"Conditional Edges — Branch & Loop" },
+  ]},
 ];
 
 /* ----------------------------- markdown parser ----------------------------- */
