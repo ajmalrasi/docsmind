@@ -13,13 +13,14 @@ from docsmind.index.faiss_store import FaissVectorStore
 from docsmind.llm.base import LLMClient
 from docsmind.llm.cloud_client import CloudLLMClient
 from docsmind.llm.local_client import LocalLLMClient
+from docsmind.llm.vllm_client import VLLMClient
 from docsmind.pipeline import RAGPipeline
 from docsmind.retrieval.reranker import CrossEncoderReranker
 from docsmind.retrieval.retriever import HybridRetriever, Retriever
 
 
 def build_embedder(settings: Settings) -> Embedder:
-    return Embedder(settings.embed_model)
+    return Embedder(settings.embed_model, device=settings.embed_device or None)
 
 
 def _qdrant_path(settings: Settings):
@@ -82,6 +83,8 @@ def build_retriever(settings: Settings, embedder: Embedder, store: VectorStore):
 
 def build_llm(settings: Settings) -> LLMClient:
     """Select the generation backend based on settings.llm_provider."""
+    if settings.llm_provider == "vllm":
+        return VLLMClient(settings.vllm_model, settings.vllm_base_url)
     if settings.llm_provider == "local":
         return LocalLLMClient(settings.local_llm_model, settings.ollama_base_url)
     return CloudLLMClient(settings.cloud_llm_model)

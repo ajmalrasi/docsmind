@@ -23,6 +23,16 @@ def chunk_documents(
 
     chunks: list[Chunk] = []
     for node in nodes:
+        text = node.get_content()
+        if node.metadata.get("source_type") == "whatsapp":
+            participants = ", ".join(node.metadata.get("participants", []))
+            header = (
+                f"Chat: {node.metadata.get('chat', 'unknown')}\n"
+                f"Window: {node.metadata.get('start_time')} to "
+                f"{node.metadata.get('end_time')}\n"
+                f"Participants: {participants}\n"
+            )
+            text = header + text
         source = (
             node.metadata.get("file_name")
             or node.metadata.get("file_path")
@@ -31,7 +41,7 @@ def chunk_documents(
         chunks.append(
             Chunk(
                 id=node.node_id,
-                text=node.get_content(),
+                text=text,
                 source=source,
                 metadata=dict(node.metadata),
             )

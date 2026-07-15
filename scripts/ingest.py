@@ -14,7 +14,11 @@ from docsmind.ingestion.loaders import load_documents
 def main() -> None:
     settings = get_settings()
     print(f"Loading documents from {settings.data_dir} ...")
-    documents = load_documents(settings.data_dir)
+    documents = load_documents(
+        settings.data_dir,
+        whatsapp_window_minutes=settings.whatsapp_window_minutes,
+        whatsapp_max_messages=settings.whatsapp_max_messages,
+    )
     print(f"  loaded {len(documents)} document(s)")
 
     chunks = chunk_documents(

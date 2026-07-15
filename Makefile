@@ -8,6 +8,7 @@ BEAST       ?= ajmalrasi@192.168.3.226
 BEAST_DIR   ?= ~/projects/docsmind
 PY          ?= python
 VENV        ?= .venv
+WHATSAPP_ZIP ?=
 
 .DEFAULT_GOAL := help
 
@@ -28,6 +29,14 @@ install: ## Create a venv and install the package (dev extras)
 ingest: ## Build the FAISS index from data/sample_docs
 	$(VENV)/bin/python -m scripts.ingest
 
+.PHONY: prepare-whatsapp
+prepare-whatsapp: ## Anonymize a WhatsApp export (WHATSAPP_ZIP=/path/chat.zip)
+	@test -n "$(WHATSAPP_ZIP)" || (echo "Set WHATSAPP_ZIP=/path/to/chat.zip" && exit 1)
+	$(VENV)/bin/python -m scripts.prepare_whatsapp \
+		--input "$(WHATSAPP_ZIP)" \
+		--output data/private/whatsapp/vagbay.whatsapp.jsonl \
+		--chat VAGBAY
+
 .PHONY: serve
 serve: ## Run the FastAPI server on :8000
 	$(VENV)/bin/uvicorn docsmind.serving.app:app --host 0.0.0.0 --port 8000
@@ -47,6 +56,10 @@ benchmark: ## Benchmark FAISS index types (recall@k vs latency vs memory)
 .PHONY: eval
 eval: ## Retrieval eval: dense vs hybrid (add ARGS=--rerank for the cross-encoder)
 	$(VENV)/bin/python -m scripts.retrieval_eval $(ARGS)
+
+.PHONY: notebook
+notebook: ## Open the visual pipeline walkthrough in JupyterLab
+	$(VENV)/bin/jupyter lab notebooks/docsmind_pipeline_walkthrough.ipynb
 
 # ---------- beast (remote) ----------
 

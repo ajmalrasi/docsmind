@@ -12,15 +12,16 @@ import numpy as np
 
 
 class Embedder:
-    def __init__(self, model_name: str) -> None:
+    def __init__(self, model_name: str, device: str | None = None) -> None:
         self.model_name = model_name
+        self.device = device
 
     @cached_property
     def _model(self):
         # Imported lazily so importing this module doesn't pull in torch.
         from sentence_transformers import SentenceTransformer
 
-        return SentenceTransformer(self.model_name)
+        return SentenceTransformer(self.model_name, device=self.device)
 
     @property
     def dim(self) -> int:

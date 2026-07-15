@@ -19,8 +19,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Generation. Provider selects the LLM backend: "cloud" (Anthropic) or
-    # "local" (self-hosted via Ollama). This is the Phase 4 router seam.
+    # Generation. Provider selects "cloud" (Anthropic), "local" (Ollama), or
+    # "vllm" (self-hosted OpenAI-compatible API). This is the router seam.
     llm_provider: str = "cloud"
 
     # Cloud LLM. The Anthropic SDK reads ANTHROPIC_API_KEY itself, so the key is
@@ -31,10 +31,18 @@ class Settings(BaseSettings):
     local_llm_model: str = "deepseek-coder-v2:16b-lite-instruct-q4_K_M"
     ollama_base_url: str = "http://localhost:11434"
 
+    # vLLM. The beast serves an INT4-AWQ Qwen3-4B checkpoint under the stable
+    # model alias "openclaw" using vLLM's OpenAI-compatible endpoint.
+    vllm_model: str = "openclaw"
+    vllm_base_url: str = "http://localhost:11434/v1"
+
     max_tokens: int = 1024
 
     # Self-hosted embedding model.
     embed_model: str = "BAAI/bge-small-en-v1.5"
+    # Empty means sentence-transformers auto-selects a device. On an 8 GB GPU
+    # dedicated to vLLM, set this to "cpu" so retrieval and generation coexist.
+    embed_device: str = ""
 
     # Vector store backend. "faiss" (in-process, file-persisted) is the default;
     # "qdrant" (Phase 2b) runs the same VectorStore contract against a Qdrant
@@ -72,6 +80,11 @@ class Settings(BaseSettings):
     top_k: int = 4
     chunk_size: int = 512
     chunk_overlap: int = 64
+
+    # WhatsApp conversation-window controls. These are used only when data_dir
+    # contains an anonymized *.whatsapp.jsonl corpus.
+    whatsapp_window_minutes: int = 10
+    whatsapp_max_messages: int = 20
 
     # Retrieval mode (Phase 3). "dense" = pure embedding search (Phase 1).
     # "hybrid" = dense + BM25 fused with Reciprocal Rank Fusion, optionally

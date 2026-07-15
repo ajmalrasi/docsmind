@@ -10,7 +10,10 @@ import sys
 from docsmind.config import get_settings
 from docsmind.factory import build_pipeline
 
-DEFAULT_QUESTION = "How do black holes form?"
+DEFAULT_DOCUMENT_QUESTION = "How do black holes form?"
+DEFAULT_WHATSAPP_QUESTION = (
+    "What symptoms were mentioned when someone asked if it was clutch slip?"
+)
 
 
 def main() -> None:
@@ -23,7 +26,11 @@ def main() -> None:
         ingest_main()
         print()
 
-    question = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_QUESTION
+    has_whatsapp_corpus = any(settings.data_dir.rglob("*.whatsapp.jsonl"))
+    default_question = (
+        DEFAULT_WHATSAPP_QUESTION if has_whatsapp_corpus else DEFAULT_DOCUMENT_QUESTION
+    )
+    question = sys.argv[1] if len(sys.argv) > 1 else default_question
     pipeline = build_pipeline(settings)
 
     print(f"Q: {question}\n")

@@ -11,6 +11,7 @@ venv/
 
 # Build artifacts / data
 data/index/
+data/private/
 *.faiss
 *.log
 
