@@ -144,6 +144,40 @@ aws-app-status: ## Show ECS status, load-balancer health, and the UI URL
 aws-app-logs: ## Follow hosted FastAPI logs in CloudWatch
 	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh logs
 
+# ---------- AWS GPU application stack ----------
+
+.PHONY: aws-gpu-deploy
+aws-gpu-deploy: ## Deploy scale-to-zero GPU ECS infrastructure without starting compute
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh deploy
+
+.PHONY: aws-gpu-quota
+aws-gpu-quota: ## Show the GPU EC2 vCPU quota and quota-request status
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh quota
+
+.PHONY: aws-gpu-start
+aws-gpu-start: ## Start BGE-M3 on T4 and vLLM on L4
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh start
+
+.PHONY: aws-gpu-start-generation
+aws-gpu-start-generation: ## Start only the vLLM L4 service for a staged migration
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh start-generation
+
+.PHONY: aws-gpu-start-embedding
+aws-gpu-start-embedding: ## Start only the BGE-M3 T4 service after GPU quota is available
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh start-embedding
+
+.PHONY: aws-gpu-stop
+aws-gpu-stop: ## Stop both GPU ECS services and scale both ASGs to zero
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh stop
+
+.PHONY: aws-gpu-status
+aws-gpu-status: ## Show GPU services, instances, target health, and endpoints
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh status
+
+.PHONY: aws-gpu-logs
+aws-gpu-logs: ## Show recent BGE-M3, vLLM, and application logs
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_gpu_service.sh logs
+
 # ---------- DigitalOcean (remote) ----------
 
 .PHONY: check-digitalocean

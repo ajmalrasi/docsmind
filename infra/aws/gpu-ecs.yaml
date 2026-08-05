@@ -1,0 +1,764 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: DocsMind GPU embedding and vLLM services on independently scalable ECS EC2 capacity providers.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  EmbeddingSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  GenerationSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  LoadBalancerSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  AllowedCidr:
+    Type: String
+    Description: Development workstation CIDR allowed to open the DocsMind UI.
+  EmbeddingDesiredCapacity:
+    Type: Number
+    Default: 0
+    AllowedValues: [0, 1]
+  GenerationDesiredCapacity:
+    Type: Number
+    Default: 0
+    AllowedValues: [0, 1]
+  EmbeddingInstanceType:
+    Type: String
+    Default: g4dn.xlarge
+  GenerationInstanceType:
+    Type: String
+    Default: g6.xlarge
+  GenerationFallbackInstanceType:
+    Type: String
+    Default: g6e.xlarge
+  GenerationSecondFallbackInstanceType:
+    Type: String
+    Default: g5.xlarge
+  GpuEcsAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id
+  TeiImage:
+    Type: String
+    Default: ghcr.io/huggingface/text-embeddings-inference@sha256:dee4a1493f54fbfd444c6e02bc95bfecaa22b9430c3655fb1d018a22ea991473
+  EmbeddingModel:
+    Type: String
+    Default: BAAI/bge-m3
+  EmbeddingModelRevision:
+    Type: String
+    Default: 5617a9f61b028005a4858fdac845db406aefb181
+  VllmImage:
+    Type: String
+    Default: 740940193664.dkr.ecr.us-east-1.amazonaws.com/openclaw/vllm-gemma4@sha256:0ea4b07a909f78a5cc8a6a82e9d3dd3efa51b59a0f5421fcf2207e80a3aae53b
+  VllmApiKeySecretArn:
+    Type: String
+    NoEcho: true
+  VllmModel:
+    Type: String
+    Default: openclaw
+  VllmKvCacheDtype:
+    Type: String
+    Default: bfloat16
+    AllowedValues: [bfloat16, fp8]
+  AppImageRepository:
+    Type: String
+    Default: docsmind-app
+  AppImageTag:
+    Type: String
+  OpenSearchCollectionArn:
+    Type: String
+  OpenSearchCollectionName:
+    Type: String
+    Default: docsmind-dev
+  OpenSearchEndpoint:
+    Type: String
+  OpenSearchIndexName:
+    Type: String
+    Default: docsmind-volkswagen-wikipedia-bge-m3-v1
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: docsmind-gpu-dev
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
+
+  EmbeddingLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/docsmind-embedding-gpu-dev
+      RetentionInDays: 7
+
+  GenerationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/docsmind-vllm-gpu-dev
+      RetentionInDays: 7
+
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/docsmind-app-gpu-dev
+      RetentionInDays: 7
+
+  ContainerInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-gpu-ecs-instance
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  ContainerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: docsmind-gpu-ecs-instance
+      Roles:
+        - !Ref ContainerInstanceRole
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-gpu-task-execution
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: docsmind-vllm-secret-read
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref VllmApiKeySecretArn
+
+  AppTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-gpu-app-task
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: docsmind-opensearch-query-api
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: aoss:APIAccessAll
+                Resource: !Ref OpenSearchCollectionArn
+
+  AppDataAccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: docsmind-gpu-app-read
+      Type: data
+      Description: Read-only OpenSearch access from the DocsMind GPU application.
+      Policy: !Sub >-
+        [{"Description":"docsmind-gpu-app-index-read","Rules":[{"ResourceType":"collection","Resource":["collection/${OpenSearchCollectionName}"],"Permission":["aoss:DescribeCollectionItems"]},{"ResourceType":"index","Resource":["index/${OpenSearchCollectionName}/${OpenSearchIndexName}"],"Permission":["aoss:DescribeIndex","aoss:ReadDocument"]}],"Principal":["${AppTaskRole.Arn}"]}]
+
+  PublicLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: IP-restricted HTTP ingress for the DocsMind GPU development UI
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref AllowedCidr
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+
+  EmbeddingHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB-only application ingress for the BGE-M3 GPU host
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          SourceSecurityGroupId: !Ref PublicLoadBalancerSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+
+  InternalLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Private vLLM ingress from the DocsMind application host
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref EmbeddingHostSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+
+  GenerationHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Internal-ALB-only ingress for the vLLM GPU host
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          SourceSecurityGroupId: !Ref InternalLoadBalancerSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+
+  EmbeddingLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: docsmind-embedding-gpu-dev
+      LaunchTemplateData:
+        ImageId: !Ref GpuEcsAmiId
+        InstanceType: !Ref EmbeddingInstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt ContainerInstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref EmbeddingHostSecurityGroup
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeType: gp3
+              VolumeSize: 80
+              Encrypted: true
+              DeleteOnTermination: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -euo pipefail
+            echo "ECS_CLUSTER=${Cluster}" >> /etc/ecs/ecs.config
+            echo "ECS_ENABLE_GPU_SUPPORT=true" >> /etc/ecs/ecs.config
+            echo "ECS_ENABLE_TASK_IAM_ROLE=true" >> /etc/ecs/ecs.config
+            mkdir -p /opt/docsmind/huggingface
+            chmod 0777 /opt/docsmind/huggingface
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: docsmind-embedding-gpu-dev
+              - Key: Project
+                Value: DocsMind
+          - ResourceType: volume
+            Tags:
+              - Key: Project
+                Value: DocsMind
+
+  GenerationLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: docsmind-vllm-gpu-dev
+      LaunchTemplateData:
+        ImageId: !Ref GpuEcsAmiId
+        InstanceType: !Ref GenerationInstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt ContainerInstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref GenerationHostSecurityGroup
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeType: gp3
+              VolumeSize: 250
+              Encrypted: true
+              DeleteOnTermination: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -euo pipefail
+            echo "ECS_CLUSTER=${Cluster}" >> /etc/ecs/ecs.config
+            echo "ECS_ENABLE_GPU_SUPPORT=true" >> /etc/ecs/ecs.config
+            echo "ECS_ENABLE_TASK_IAM_ROLE=true" >> /etc/ecs/ecs.config
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: docsmind-vllm-gpu-dev
+              - Key: Project
+                Value: DocsMind
+          - ResourceType: volume
+            Tags:
+              - Key: Project
+                Value: DocsMind
+
+  EmbeddingAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: docsmind-embedding-gpu-dev
+      VPCZoneIdentifier: !Ref EmbeddingSubnetIds
+      MinSize: 0
+      MaxSize: 1
+      DesiredCapacity: !Ref EmbeddingDesiredCapacity
+      HealthCheckType: EC2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref EmbeddingLaunchTemplate
+        Version: !GetAtt EmbeddingLaunchTemplate.LatestVersionNumber
+      Tags:
+        - Key: Project
+          Value: DocsMind
+          PropagateAtLaunch: true
+        - Key: Workload
+          Value: embedding-gpu
+          PropagateAtLaunch: true
+
+  GenerationAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: docsmind-vllm-gpu-dev
+      VPCZoneIdentifier: !Ref GenerationSubnetIds
+      MinSize: 0
+      MaxSize: 1
+      DesiredCapacity: !Ref GenerationDesiredCapacity
+      HealthCheckType: EC2
+      MixedInstancesPolicy:
+        InstancesDistribution:
+          OnDemandAllocationStrategy: prioritized
+          OnDemandBaseCapacity: 0
+          OnDemandPercentageAboveBaseCapacity: 100
+        LaunchTemplate:
+          LaunchTemplateSpecification:
+            LaunchTemplateId: !Ref GenerationLaunchTemplate
+            Version: !GetAtt GenerationLaunchTemplate.LatestVersionNumber
+          Overrides:
+            - InstanceType: !Ref GenerationInstanceType
+            - InstanceType: !Ref GenerationFallbackInstanceType
+            - InstanceType: !Ref GenerationSecondFallbackInstanceType
+      Tags:
+        - Key: Project
+          Value: DocsMind
+          PropagateAtLaunch: true
+        - Key: Workload
+          Value: generation-gpu
+          PropagateAtLaunch: true
+
+  EmbeddingCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: docsmind-embedding-gpu-dev
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref EmbeddingAutoScalingGroup
+        ManagedDraining: ENABLED
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1
+        ManagedTerminationProtection: DISABLED
+
+  GenerationCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: docsmind-vllm-gpu-dev
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref GenerationAutoScalingGroup
+        ManagedDraining: ENABLED
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1
+        ManagedTerminationProtection: DISABLED
+
+  CapacityProviderAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref Cluster
+      CapacityProviders:
+        - !Ref EmbeddingCapacityProvider
+        - !Ref GenerationCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref EmbeddingCapacityProvider
+          Weight: 1
+
+  GenerationTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: docsmind-vllm-gpu
+      RequiresCompatibilities: [EC2]
+      NetworkMode: bridge
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: vllm
+          Image: !Ref VllmImage
+          Essential: true
+          Cpu: 3584
+          MemoryReservation: 12288
+          Memory: 14336
+          ResourceRequirements:
+            - Type: GPU
+              Value: "1"
+          EntryPoint:
+            - sh
+            - -c
+          Command:
+            - !Sub >-
+              exec vllm serve /models/gemma-4-12b-w4a16
+              --served-model-name openclaw
+              --language-model-only
+              --quantization compressed-tensors
+              --dtype auto
+              --kv-cache-dtype ${VllmKvCacheDtype}
+              --max-model-len 16384
+              --gpu-memory-utilization 0.95
+              --max-num-seqs 4
+              --enforce-eager
+              --host 0.0.0.0
+              --port 8000
+          Secrets:
+            - Name: VLLM_API_KEY
+              ValueFrom: !Ref VllmApiKeySecretArn
+          PortMappings:
+            - ContainerPort: 8000
+              HostPort: 8000
+              Protocol: tcp
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -fsS http://localhost:8000/health || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 10
+            StartPeriod: 300
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref GenerationLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: vllm
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Model
+          Value: gemma-4-12b-w4a16
+
+  AppEmbeddingTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: docsmind-app-embedding-gpu
+      RequiresCompatibilities: [EC2]
+      NetworkMode: bridge
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt AppTaskRole.Arn
+      Volumes:
+        - Name: model-cache
+          Host:
+            SourcePath: /opt/docsmind/huggingface
+      ContainerDefinitions:
+        - Name: tei
+          Image: !Ref TeiImage
+          Essential: true
+          Cpu: 3072
+          MemoryReservation: 8192
+          Memory: 12288
+          ResourceRequirements:
+            - Type: GPU
+              Value: "1"
+          Command:
+            - --model-id
+            - !Ref EmbeddingModel
+            - --revision
+            - !Ref EmbeddingModelRevision
+            - --dtype
+            - float16
+            - --pooling
+            - cls
+            - --port
+            - "80"
+            - --max-batch-tokens
+            - "8192"
+            - --max-concurrent-requests
+            - "32"
+            - --max-client-batch-size
+            - "32"
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 8080
+              Protocol: tcp
+          MountPoints:
+            - SourceVolume: model-cache
+              ContainerPath: /data
+              ReadOnly: false
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -fsS http://localhost:80/health || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 10
+            StartPeriod: 300
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref EmbeddingLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: tei
+        - Name: app
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/${AppImageRepository}:${AppImageTag}
+          Essential: true
+          Cpu: 512
+          MemoryReservation: 512
+          Memory: 768
+          DependsOn:
+            - ContainerName: tei
+              Condition: HEALTHY
+          Links:
+            - tei:embedding
+          PortMappings:
+            - ContainerPort: 8000
+              HostPort: 8000
+              Protocol: tcp
+          Environment:
+            - Name: DOCSMIND_EMBEDDING_PROVIDER
+              Value: tei
+            - Name: DOCSMIND_TEI_EMBED_MODEL
+              Value: !Ref EmbeddingModel
+            - Name: DOCSMIND_TEI_EMBED_DIMENSIONS
+              Value: "1024"
+            - Name: DOCSMIND_TEI_BASE_URL
+              Value: http://embedding:80
+            - Name: DOCSMIND_TEI_EMBED_BATCH_SIZE
+              Value: "32"
+            - Name: DOCSMIND_VECTOR_BACKEND
+              Value: opensearch
+            - Name: DOCSMIND_OPENSEARCH_ENDPOINT
+              Value: !Ref OpenSearchEndpoint
+            - Name: DOCSMIND_OPENSEARCH_INDEX
+              Value: !Ref OpenSearchIndexName
+            - Name: DOCSMIND_AWS_REGION
+              Value: !Ref AWS::Region
+            - Name: DOCSMIND_AWS_PROFILE
+              Value: ""
+            - Name: DOCSMIND_INDEX_DIR
+              Value: /tmp/docsmind-index
+            - Name: DOCSMIND_RETRIEVAL_MODE
+              Value: hybrid
+            - Name: DOCSMIND_RERANK_ENABLED
+              Value: "false"
+            - Name: DOCSMIND_LLM_PROVIDER
+              Value: vllm
+            - Name: DOCSMIND_VLLM_MODEL
+              Value: !Ref VllmModel
+            - Name: DOCSMIND_VLLM_BASE_URL
+              Value: !Sub http://${InternalLoadBalancer.DNSName}/v1
+            - Name: DOCSMIND_MAX_TOKENS
+              Value: "512"
+          Secrets:
+            - Name: DOCSMIND_VLLM_API_KEY
+              ValueFrom: !Ref VllmApiKeySecretArn
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=3)" || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 5
+            StartPeriod: 180
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref AppLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: app
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Model
+          Value: !Ref EmbeddingModel
+
+  PublicTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: docsmind-gpu-app-dev
+      VpcId: !Ref VpcId
+      Port: 8000
+      Protocol: HTTP
+      TargetType: instance
+      HealthCheckPath: /ready
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      Matcher:
+        HttpCode: "200"
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
+
+  PublicLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: docsmind-gpu-app-dev
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref PublicLoadBalancerSecurityGroup
+      Subnets: !Ref LoadBalancerSubnetIds
+
+  PublicListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref PublicLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref PublicTargetGroup
+
+  InternalTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: docsmind-vllm-gpu-dev
+      VpcId: !Ref VpcId
+      Port: 8000
+      Protocol: HTTP
+      TargetType: instance
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      Matcher:
+        HttpCode: "200"
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
+
+  InternalLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: docsmind-vllm-gpu-dev
+      Scheme: internal
+      Type: application
+      SecurityGroups:
+        - !Ref InternalLoadBalancerSecurityGroup
+      Subnets: !Ref LoadBalancerSubnetIds
+
+  InternalListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref InternalLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref InternalTargetGroup
+
+  GenerationService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - CapacityProviderAssociation
+      - InternalListener
+    Properties:
+      ServiceName: docsmind-vllm-gpu
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref GenerationTaskDefinition
+      DesiredCount: !Ref GenerationDesiredCapacity
+      CapacityProviderStrategy:
+        - CapacityProvider: !Ref GenerationCapacityProvider
+          Weight: 1
+      LoadBalancers:
+        - ContainerName: vllm
+          ContainerPort: 8000
+          TargetGroupArn: !Ref InternalTargetGroup
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 0
+        MaximumPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      HealthCheckGracePeriodSeconds: 1200
+      EnableECSManagedTags: true
+      PropagateTags: TASK_DEFINITION
+
+  AppEmbeddingService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - CapacityProviderAssociation
+      - PublicListener
+      - GenerationService
+    Properties:
+      ServiceName: docsmind-app-embedding-gpu
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref AppEmbeddingTaskDefinition
+      DesiredCount: !Ref EmbeddingDesiredCapacity
+      CapacityProviderStrategy:
+        - CapacityProvider: !Ref EmbeddingCapacityProvider
+          Weight: 1
+      LoadBalancers:
+        - ContainerName: app
+          ContainerPort: 8000
+          TargetGroupArn: !Ref PublicTargetGroup
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 0
+        MaximumPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      HealthCheckGracePeriodSeconds: 1200
+      EnableECSManagedTags: true
+      PropagateTags: TASK_DEFINITION
+
+Outputs:
+  ClusterName:
+    Value: !Ref Cluster
+  AppEmbeddingServiceName:
+    Value: !GetAtt AppEmbeddingService.Name
+  GenerationServiceName:
+    Value: !GetAtt GenerationService.Name
+  EmbeddingAutoScalingGroupName:
+    Value: !Ref EmbeddingAutoScalingGroup
+  GenerationAutoScalingGroupName:
+    Value: !Ref GenerationAutoScalingGroup
+  AppUrl:
+    Value: !Sub http://${PublicLoadBalancer.DNSName}
+  InternalVllmBaseUrl:
+    Value: !Sub http://${InternalLoadBalancer.DNSName}/v1
+  PublicTargetGroupArn:
+    Value: !Ref PublicTargetGroup
+  InternalTargetGroupArn:
+    Value: !Ref InternalTargetGroup
+  EmbeddingModel:
+    Value: !Sub ${EmbeddingModel}@${EmbeddingModelRevision}
+  GenerationModel:
+    Value: !Ref VllmModel

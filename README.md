@@ -234,6 +234,8 @@ make eval                              # dense versus hybrid retrieval
 make eval ARGS=--rerank                # add cross-encoder reranking
 make vllm-benchmark ARGS='--concurrency 1 2 4'
 make aws-embedding-benchmark           # BGE-M3 latency/throughput through SSM
+make aws-gpu-quota                     # GPU EC2 quota and request status
+make aws-gpu-status                    # ECS GPU services, ASGs, and target health
 ```
 
 For retrieval, compare Hit@k and MRR at the same chunk size and labeled query
@@ -257,6 +259,15 @@ Face TEI on one CPU `m7i.large` managed by ECS on EC2. The host has no inbound
 security-group rules; development access uses an SSM port-forwarding session.
 The measured CPU baseline and start/stop workflow are in
 [the AWS embedding-service guide](docs/14-aws-embedding-service/README.md).
+
+The scale-to-zero GPU replacement is defined in `infra/aws/gpu-ecs.yaml`. vLLM
+generation has been migrated to ECS and is running on an A10G fallback. The T4
+BGE-M3 service is provisioned but remains at zero because the account's current
+four-vCPU GPU quota cannot run both instances together; query embedding remains
+on the existing CPU service. The exact topology and current state are in the
+[GPU ECS deployment guide](docs/16-aws-gpu-ecs/README.md), and every migration
+step, failure, fix, and acceptance boundary is recorded in the
+[complete engineering log](docs/16-aws-gpu-ecs/migration-log.md).
 
 The hosted application packages the Volkswagen chat UI and FastAPI query path
 into one ECR image. ECS runs it beside the private TEI container, and an
