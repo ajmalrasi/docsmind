@@ -141,6 +141,25 @@ prevent accidental data loss.
 CodeBuild is a build worker, not an application runtime. It stops billing when
 the image build finishes. ECS remains responsible for running the image.
 
+### First build hurdle: Docker Hub throttling
+
+The first CodeBuild run authenticated to ECR, checked out the exact Git commit,
+and reached `docker build`, but Docker Hub returned HTTP 429 while resolving
+`python:3.12-slim`. This was a base-image registry throttle, not an application
+or ECR failure.
+
+The Dockerfile now pulls the official Python image through AWS Public ECR:
+
+```text
+public.ecr.aws/docker/library/python:3.12-slim
+```
+
+The buildspec also aborts immediately when pre-build or build fails, so it does
+not attempt to push a nonexistent image. In an interview, this is the useful
+debug signal: identify whether failure happened while fetching the base image,
+building application layers, authenticating to the private registry, or pushing
+the result; “Docker build failed” is not a root cause.
+
 ## Security boundary
 
 This is a development deployment, not an unrestricted public product:

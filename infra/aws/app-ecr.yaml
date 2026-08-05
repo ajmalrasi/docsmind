@@ -81,6 +81,7 @@ Resources:
           version: 0.2
           phases:
             pre_build:
+              on-failure: ABORT
               commands:
                 - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "${REPOSITORY_URI%/*}"
                 - git init /tmp/docsmind
@@ -89,6 +90,7 @@ Resources:
                 - git fetch --depth 1 origin "$GIT_REF"
                 - git checkout --detach FETCH_HEAD
             build:
+              on-failure: ABORT
               commands:
                 - docker build --tag "$REPOSITORY_URI:$IMAGE_TAG" --tag "$REPOSITORY_URI:latest" .
             post_build:
