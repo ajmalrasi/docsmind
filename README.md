@@ -45,7 +45,7 @@ docsmind/
   ingestion/   loaders, chunker          (LlamaIndex)
   index/       embeddings, VectorStore interface, faiss_store
   retrieval/   retriever (dense; hybrid + rerank land in Phase 3)
-  llm/         LLMClient interface, cloud_client (Anthropic)
+  llm/         Anthropic/Ollama/vLLM clients + fallback router
   agent/       LangGraph agent            (Phase 5 stub)
   eval/        RAGAS + golden set + CI gate (Phase 6 stub)
   serving/     FastAPI app
@@ -83,7 +83,7 @@ curl -s localhost:8000/query -H 'content-type: application/json' \
 
 ## Technologies
 
-### Phase 1 (Current)
+### Current stack (Phases 1–4)
 
 | Category | Technology | Purpose |
 |----------|-----------|---------|
@@ -102,7 +102,7 @@ curl -s localhost:8000/query -H 'content-type: application/json' \
 |-------|-----------|---------|
 | **Phase 2** | FAISS IVF/HNSW/PQ · Qdrant | Index optimization & alternative backends |
 | **Phase 3** | BM25 · cross-encoder reranker | Hybrid retrieval & ranking |
-| **Phase 4** | vLLM · Ollama | Self-hosted SLM fallback + router |
+| **Phase 4** | vLLM · Ollama | Authenticated self-hosted SLM + cloud fallback router |
 | **Phase 5** | LangGraph | Agentic orchestration (plan → tool → cite) |
 | **Phase 6** | RAGAS · Golden set | Evaluation & CI regression gates |
 | **Phase 7** | Docker · Kubernetes · Langfuse · MLflow | Ops, observability, cost tracking |
@@ -136,11 +136,35 @@ Anthropic key is read from `ANTHROPIC_API_KEY` by the SDK and never stored in
 code. Swap the generation model to `claude-haiku-4-5` or `claude-sonnet-4-6` for
 cheaper high-volume benchmarking.
 
+For self-hosted-first generation, keep the endpoint and credentials in `.env`:
+
+```bash
+DOCSMIND_LLM_PROVIDER=router
+DOCSMIND_LLM_PRIMARY_PROVIDER=vllm
+DOCSMIND_LLM_FALLBACK_PROVIDER=cloud
+DOCSMIND_VLLM_BASE_URL=https://your-vllm-host.example/v1
+DOCSMIND_VLLM_API_KEY=your-secret
+```
+
+Then verify the model separately from the corpus, run a complete RAG query, and
+benchmark serving performance:
+
+```bash
+make vllm-smoke
+make vllm-demo ARGS='"How do black holes form?"'
+make vllm-benchmark ARGS='--concurrency 1 2 4 --requests-per-level 4'
+```
+
+The router falls back only on timeouts, connection errors, HTTP 408/429, and
+5xx responses. Authentication, model-name, and malformed-request failures stop
+immediately so configuration problems are not hidden by a paid cloud call.
+
 ## Roadmap
 
 - **Phase 2** — FAISS IVF/HNSW/PQ + Qdrant backend; recall@k / latency benchmarks.
 - **Phase 3** — BM25 + fusion + cross-encoder reranker; retrieval-lift benchmark.
-- **Phase 4** — self-hosted SLM via vLLM/Ollama + `LLMRouter` (cloud fallback/judge).
+- **Phase 4** — authenticated vLLM/Ollama + `LLMRouter` availability fallback;
+  next: quality routing and structured-output reliability evaluation.
 - **Phase 5** — LangGraph agent (retrieve/web_search/code_exec/cite + guardrails).
 - **Phase 6** — RAGAS eval, golden set, CI regression gate.
 - **Phase 7** — Langfuse + MLflow, cost/latency dashboard, Docker, k8s.

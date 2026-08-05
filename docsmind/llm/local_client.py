@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import httpx
 
-from docsmind.llm.base import LLMClient
+from docsmind.llm.base import LLMClient, LLMRequestError, LLMUnavailableError
 
 
 class LocalLLMClient(LLMClient):
@@ -24,17 +24,35 @@ class LocalLLMClient(LLMClient):
         self._client = httpx.Client(timeout=timeout)
 
     def generate(self, system: str, prompt: str, max_tokens: int) -> str:
-        response = self._client.post(
-            f"{self._base_url}/api/chat",
-            json={
-                "model": self.model,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": prompt},
-                ],
-                "stream": False,
-                "options": {"num_predict": max_tokens},
-            },
-        )
-        response.raise_for_status()
-        return response.json()["message"]["content"].strip()
+        try:
+            response = self._client.post(
+                f"{self._base_url}/api/chat",
+                json={
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "stream": False,
+                    "options": {"num_predict": max_tokens},
+                },
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            status = exc.response.status_code
+            if status in {408, 429} or status >= 500:
+                raise LLMUnavailableError(
+                    f"Ollama is temporarily unavailable (HTTP {status})"
+                ) from exc
+            raise LLMRequestError(
+                f"Ollama rejected the request (HTTP {status})"
+            ) from exc
+        except (httpx.TimeoutException, httpx.TransportError) as exc:
+            raise LLMUnavailableError(
+                f"Ollama could not be reached at {self._base_url}"
+            ) from exc
+
+        try:
+            return response.json()["message"]["content"].strip()
+        except (KeyError, TypeError, ValueError) as exc:
+            raise LLMRequestError("Ollama returned an invalid chat response") from exc

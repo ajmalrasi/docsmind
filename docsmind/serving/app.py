@@ -43,7 +43,7 @@ def health() -> HealthResponse:
         index_size=store.size if store else 0,
         index_type=store.index_type if store else settings.index_type,
         retrieval_mode=settings.retrieval_mode,
-        model=settings.cloud_llm_model,
+        model=pipeline._llm.model if pipeline else settings.llm_provider,
     )
 
 

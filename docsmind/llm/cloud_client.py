@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import anthropic
 
-from docsmind.llm.base import LLMClient
+from docsmind.llm.base import LLMClient, LLMRequestError, LLMUnavailableError
 
 
 class CloudLLMClient(LLMClient):
@@ -17,12 +17,30 @@ class CloudLLMClient(LLMClient):
         self._client = anthropic.Anthropic()
 
     def generate(self, system: str, prompt: str, max_tokens: int) -> str:
-        response = self._client.messages.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        try:
+            response = self._client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except (
+            anthropic.APIConnectionError,
+            anthropic.APITimeoutError,
+            anthropic.RateLimitError,
+        ) as exc:
+            raise LLMUnavailableError(
+                f"Anthropic model {self.model} is temporarily unavailable"
+            ) from exc
+        except anthropic.APIStatusError as exc:
+            if exc.status_code in {408, 429} or exc.status_code >= 500:
+                raise LLMUnavailableError(
+                    f"Anthropic model {self.model} is temporarily unavailable "
+                    f"(HTTP {exc.status_code})"
+                ) from exc
+            raise LLMRequestError(
+                f"Anthropic rejected the request (HTTP {exc.status_code})"
+            ) from exc
         return "".join(
             block.text for block in response.content if block.type == "text"
         ).strip()

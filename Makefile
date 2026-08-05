@@ -45,6 +45,18 @@ serve: ## Run the FastAPI server on :8000
 demo: ## Ingest if needed, then run a sample query with citations
 	$(VENV)/bin/python -m scripts.demo
 
+.PHONY: vllm-smoke
+vllm-smoke: ## Test the configured authenticated vLLM endpoint (no corpus needed)
+	$(VENV)/bin/python -m scripts.vllm_smoke $(ARGS)
+
+.PHONY: vllm-demo
+vllm-demo: ## Run the full RAG pipeline with vLLM primary + cloud fallback
+	DOCSMIND_LLM_PROVIDER=router $(VENV)/bin/python -m scripts.demo $(ARGS)
+
+.PHONY: vllm-benchmark
+vllm-benchmark: ## Measure vLLM TTFT, latency, and throughput (corpus-independent)
+	$(VENV)/bin/python -m scripts.vllm_benchmark $(ARGS)
+
 .PHONY: test
 test: ## Run the offline test suite
 	$(VENV)/bin/pytest

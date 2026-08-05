@@ -7,7 +7,9 @@ object so the system is reconfigurable without touching code.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,9 +21,11 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Generation. Provider selects "cloud" (Anthropic), "local" (Ollama), or
-    # "vllm" (self-hosted OpenAI-compatible API). This is the router seam.
-    llm_provider: str = "cloud"
+    # Generation. "router" tries llm_primary_provider and falls back only when
+    # that provider has a transient availability failure.
+    llm_provider: Literal["cloud", "local", "vllm", "router"] = "cloud"
+    llm_primary_provider: Literal["cloud", "local", "vllm"] = "vllm"
+    llm_fallback_provider: Literal["cloud", "local", "vllm"] = "cloud"
 
     # Cloud LLM. The Anthropic SDK reads ANTHROPIC_API_KEY itself, so the key is
     # never stored on this object.
@@ -31,10 +35,13 @@ class Settings(BaseSettings):
     local_llm_model: str = "deepseek-coder-v2:16b-lite-instruct-q4_K_M"
     ollama_base_url: str = "http://localhost:11434"
 
-    # vLLM. The beast serves an INT4-AWQ Qwen3-4B checkpoint under the stable
-    # model alias "openclaw" using vLLM's OpenAI-compatible endpoint.
+    # vLLM. The concrete checkpoint and host can change independently while the
+    # application keeps the stable model alias "openclaw".
     vllm_model: str = "openclaw"
     vllm_base_url: str = "http://localhost:11434/v1"
+    # Kept as SecretStr so settings/log representations cannot reveal it.
+    vllm_api_key: SecretStr | None = None
+    vllm_timeout_seconds: float = 300.0
 
     max_tokens: int = 1024
 
