@@ -114,6 +114,36 @@ aws-embedding-benchmark: ## Benchmark TEI through the localhost SSM tunnel
 wikipedia-embedding-eval: ## Compare bge-small and BGE-M3 persisted Wikipedia indexes
 	$(VENV)/bin/python -m scripts.wikipedia_embedding_eval $(ARGS)
 
+# ---------- AWS hosted application ----------
+
+.PHONY: aws-app-registry
+aws-app-registry: ## Create the ECR registry for the DocsMind API/UI image
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh registry
+
+.PHONY: aws-app-build
+aws-app-build: ## Build linux/amd64 and push the DocsMind API/UI image to ECR
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh build
+
+.PHONY: aws-app-deploy
+aws-app-deploy: ## Deploy the IP-restricted ALB and API/UI container definition
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh deploy
+
+.PHONY: aws-app-start
+aws-app-start: ## Start TEI and the hosted DocsMind API/UI together
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh start
+
+.PHONY: aws-app-stop
+aws-app-stop: ## Scale the hosted DocsMind API/UI and TEI host to zero
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh stop
+
+.PHONY: aws-app-status
+aws-app-status: ## Show ECS status, load-balancer health, and the UI URL
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh status
+
+.PHONY: aws-app-logs
+aws-app-logs: ## Follow hosted FastAPI logs in CloudWatch
+	AWS_PROFILE=$(AWS_PROFILE) AWS_REGION=$(AWS_REGION) bash scripts/aws_app_service.sh logs
+
 # ---------- DigitalOcean (remote) ----------
 
 .PHONY: check-digitalocean

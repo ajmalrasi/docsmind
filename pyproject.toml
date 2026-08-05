@@ -47,6 +47,9 @@ crawl = [
 [tool.setuptools.packages.find]
 include = ["docsmind*"]
 
+[tool.setuptools.package-data]
+docsmind = ["serving/static/*.html"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

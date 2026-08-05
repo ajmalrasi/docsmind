@@ -22,41 +22,8 @@ instance_id() {
 
 case "$ACTION" in
   deploy)
-    CURRENT_STATUS="$(aws_cli cloudformation describe-stacks \
-      --stack-name "$STACK_NAME" --query 'Stacks[0].StackStatus' --output text \
-      2>/dev/null || true)"
-    if [[ "$CURRENT_STATUS" == "ROLLBACK_COMPLETE" ]]; then
-      aws_cli cloudformation delete-stack --stack-name "$STACK_NAME"
-      aws_cli cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
-    fi
-    VPC_ID="${VPC_ID:-$(aws_cli ec2 describe-vpcs \
-      --filters Name=is-default,Values=true \
-      --query 'Vpcs[0].VpcId' --output text)}"
-    SUBNET_ID="${SUBNET_ID:-$(aws_cli ec2 describe-subnets \
-      --filters Name=vpc-id,Values="$VPC_ID" Name=default-for-az,Values=true \
-      --query 'sort_by(Subnets,&AvailabilityZone)[0].SubnetId' --output text)}"
-    if [[ "$VPC_ID" == "None" || "$SUBNET_ID" == "None" ]]; then
-      echo "A VPC and public subnet are required. Set VPC_ID and SUBNET_ID." >&2
-      exit 1
-    fi
-    OPENSEARCH_COLLECTION_ARN="${OPENSEARCH_COLLECTION_ARN:-$(aws_cli opensearchserverless \
-      batch-get-collection --names "${OPENSEARCH_COLLECTION_NAME:-docsmind-dev}" \
-      --query 'collectionDetails[0].arn' --output text)}"
-    if [[ "$OPENSEARCH_COLLECTION_ARN" == "None" ]]; then
-      echo "OpenSearch collection was not found. Set OPENSEARCH_COLLECTION_ARN." >&2
-      exit 1
-    fi
-    aws_cli cloudformation deploy \
-      --stack-name "$STACK_NAME" \
-      --template-file infra/aws/embedding-ecs.yaml \
-      --capabilities CAPABILITY_NAMED_IAM \
-      --parameter-overrides \
-        VpcId="$VPC_ID" \
-        SubnetId="$SUBNET_ID" \
-        OpenSearchCollectionArn="$OPENSEARCH_COLLECTION_ARN" \
-        InstanceType="${EMBEDDING_INSTANCE_TYPE:-m7i.large}" \
-        DesiredCapacity=1 \
-      --tags Project=DocsMind Environment=development
+    AWS_PROFILE="$AWS_PROFILE_NAME" AWS_REGION="$AWS_REGION_NAME" \
+      AWS_STACK_NAME="$STACK_NAME" bash scripts/aws_app_service.sh deploy
     ;;
   status)
     aws_cli cloudformation describe-stacks \

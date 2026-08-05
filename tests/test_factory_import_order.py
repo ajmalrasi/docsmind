@@ -39,7 +39,7 @@ def test_pipeline_loads_embedder_runtime_before_vector_backend():
         patch("docsmind.factory.build_embedder", return_value=FakeEmbedder()),
         patch(
             "docsmind.factory.load_store",
-            side_effect=lambda settings: events.append("store") or object(),
+            side_effect=lambda settings, **kwargs: events.append("store") or object(),
         ),
         patch("docsmind.factory.build_retriever", return_value=object()),
         patch("docsmind.factory.build_llm", return_value=object()),

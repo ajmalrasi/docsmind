@@ -1,0 +1,13 @@
+# Query-time dependencies only. Ingestion, local FAISS/Qdrant, and local
+# transformer dependencies deliberately stay out of the small hosted image.
+anthropic>=0.40
+awscrt>=0.23
+boto3>=1.35
+fastapi>=0.115
+httpx>=0.27
+numpy>=1.26
+opensearch-py>=3.0
+pydantic>=2.7
+pydantic-settings>=2.3
+rank-bm25>=0.2
+uvicorn[standard]>=0.30

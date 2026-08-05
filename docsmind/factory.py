@@ -112,11 +112,31 @@ def new_store(settings: Settings, dim: int) -> VectorStore:
     )
 
 
-def load_store(settings: Settings) -> VectorStore:
-    """Load a persisted store from disk (or reconnect to the Qdrant collection)."""
+def load_store(settings: Settings, *, dim: int | None = None) -> VectorStore:
+    """Load a store or reconnect directly to a configured remote OpenSearch index.
+
+    Local backends need their persisted files. A hosted application already has
+    the OpenSearch endpoint, index name, and embedding dimension in its runtime
+    configuration, so it must not depend on an ingestion machine's local
+    ``meta.json`` marker being copied into the container.
+    """
     if settings.vector_backend == "opensearch":
         from docsmind.index.opensearch_store import OpenSearchVectorStore
 
+        marker = settings.index_dir / "meta.json"
+        if not marker.exists() and dim is not None:
+            return OpenSearchVectorStore(
+                dim=dim,
+                endpoint=settings.opensearch_endpoint,
+                index_name=settings.opensearch_index,
+                region=settings.aws_region,
+                profile_name=settings.aws_profile,
+                bulk_size=settings.opensearch_bulk_size,
+                page_size=settings.opensearch_page_size,
+                request_timeout=settings.opensearch_request_timeout,
+                max_retries=settings.opensearch_max_retries,
+                recreate=False,
+            )
         return OpenSearchVectorStore.load(
             settings.index_dir,
             endpoint=settings.opensearch_endpoint or None,
@@ -195,8 +215,8 @@ def build_pipeline(settings: Settings) -> RAGPipeline:
     embedder = build_embedder(settings)
     # Load the PyTorch-backed embedder before a native vector-store runtime.
     # FAISS-first import order can segfault sentence-transformer encode on macOS.
-    _ = embedder.dim
-    store = load_store(settings)
+    embedding_dim = embedder.dim
+    store = load_store(settings, dim=embedding_dim)
     validate_embedding_manifest(settings.index_dir, embedder)
     retriever = build_retriever(settings, embedder, store)
     llm = build_llm(settings)

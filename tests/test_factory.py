@@ -43,9 +43,32 @@ def test_new_store_wires_opensearch_settings():
 def test_load_store_reconnects_with_current_non_secret_settings(tmp_path):
     settings = _settings(index_dir=tmp_path)
     with patch(
+        "docsmind.index.opensearch_store.OpenSearchVectorStore"
+    ) as store_class:
+        result = load_store(settings, dim=1024)
+
+    assert result is store_class.return_value
+    store_class.assert_called_once_with(
+        dim=1024,
+        endpoint="https://example.aoss.us-east-1.on.aws",
+        index_name="test-chunks",
+        region="us-east-1",
+        profile_name="docsmind",
+        bulk_size=500,
+        page_size=1000,
+        request_timeout=60,
+        max_retries=5,
+        recreate=False,
+    )
+
+
+def test_load_store_prefers_existing_opensearch_marker(tmp_path):
+    (tmp_path / "meta.json").write_text("{}", encoding="utf-8")
+    settings = _settings(index_dir=tmp_path)
+    with patch(
         "docsmind.index.opensearch_store.OpenSearchVectorStore.load"
     ) as load:
-        result = load_store(settings)
+        result = load_store(settings, dim=1024)
 
     assert result is load.return_value
     load.assert_called_once_with(

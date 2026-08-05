@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECR registry for the DocsMind FastAPI and web UI image.
+
+Parameters:
+  RepositoryName:
+    Type: String
+    Default: docsmind-app
+  GitRepository:
+    Type: String
+    Default: https://github.com/ajmalrasi/docsmind.git
+
+Resources:
+  Repository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: MUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: >-
+          {"rules":[{"rulePriority":1,"description":"Keep the ten newest application images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},"action":{"type":"expire"}}]}
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
+
+  BuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-app-build
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: docsmind-app-build-ecr
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:CompleteLayerUpload
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:InitiateLayerUpload
+                  - ecr:PutImage
+                  - ecr:UploadLayerPart
+                Resource: !GetAtt Repository.Arn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: docsmind-app-build
+      Description: Build the public DocsMind Git commit into a linux/amd64 ECR image.
+      ServiceRole: !GetAtt BuildRole.Arn
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            pre_build:
+              commands:
+                - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "${REPOSITORY_URI%/*}"
+                - git init /tmp/docsmind
+                - cd /tmp/docsmind
+                - git remote add origin "$GIT_REPOSITORY"
+                - git fetch --depth 1 origin "$GIT_REF"
+                - git checkout --detach FETCH_HEAD
+            build:
+              commands:
+                - docker build --tag "$REPOSITORY_URI:$IMAGE_TAG" --tag "$REPOSITORY_URI:latest" .
+            post_build:
+              commands:
+                - docker push "$REPOSITORY_URI:$IMAGE_TAG"
+                - docker push "$REPOSITORY_URI:latest"
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        Type: LINUX_CONTAINER
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: REPOSITORY_URI
+            Value: !GetAtt Repository.RepositoryUri
+          - Name: GIT_REPOSITORY
+            Value: !Ref GitRepository
+          - Name: GIT_REF
+            Value: main
+          - Name: IMAGE_TAG
+            Value: latest
+      TimeoutInMinutes: 20
+      QueuedTimeoutInMinutes: 20
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
+
+Outputs:
+  RepositoryUri:
+    Value: !GetAtt Repository.RepositoryUri
+  RepositoryName:
+    Value: !Ref Repository
+  BuildProjectName:
+    Value: !Ref BuildProject

@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Grounded Volkswagen Group answers from the DocsMind RAG system.">
+  <title>DocsMind — Volkswagen Group</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f0e8;
+      --muted: #a9b0b5;
+      --panel: rgba(17, 24, 29, 0.88);
+      --line: rgba(255, 255, 255, 0.11);
+      --accent: #efb24a;
+      --accent-2: #75c9c8;
+      --danger: #ff867b;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 15%, rgba(117, 201, 200, 0.16), transparent 34rem),
+        radial-gradient(circle at 90% 75%, rgba(239, 178, 74, 0.13), transparent 30rem),
+        #081014;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.23;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 54px 0 72px;
+      position: relative;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 28px;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+
+    .eyebrow {
+      color: var(--accent-2);
+      font-size: .76rem;
+      font-weight: 750;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 720px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.5rem, 6vw, 5.1rem);
+      font-weight: 500;
+      line-height: .95;
+      letter-spacing: -.045em;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .lede {
+      margin: 20px 0 0;
+      max-width: 650px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 1.02rem;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(0,0,0,.18);
+      font-size: .82rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 4px rgba(169,176,181,.1);
+    }
+
+    .status.ready .dot { background: #79d89c; box-shadow: 0 0 0 4px rgba(121,216,156,.12); }
+    .status.error .dot { background: var(--danger); box-shadow: 0 0 0 4px rgba(255,134,123,.12); }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      border-radius: 22px;
+      padding: clamp(18px, 4vw, 30px);
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 116px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      color: var(--ink);
+      background: rgba(2, 7, 9, .58);
+      font: inherit;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    textarea:focus {
+      border-color: rgba(117, 201, 200, .7);
+      box-shadow: 0 0 0 4px rgba(117, 201, 200, .09);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .hint { color: var(--muted); font-size: .82rem; }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 21px;
+      color: #171007;
+      background: var(--accent);
+      font: inherit;
+      font-weight: 760;
+      cursor: pointer;
+      transition: transform .16s, opacity .16s;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:disabled { cursor: wait; opacity: .55; transform: none; }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .example {
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      font-size: .8rem;
+      font-weight: 550;
+    }
+
+    .example:hover { color: var(--ink); border-color: rgba(239,178,74,.45); }
+
+    #result { margin-top: 20px; display: none; }
+    #result.visible { display: block; }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: baseline;
+      margin-bottom: 18px;
+    }
+
+    h2 { margin: 0; font-family: Georgia, serif; font-size: 1.55rem; font-weight: 500; }
+    .meta { color: var(--muted); font-size: .8rem; }
+    .answer { white-space: pre-wrap; line-height: 1.72; font-size: 1rem; }
+    .answer.error { color: var(--danger); }
+
+    .citations { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .citations h3 { margin: 0 0 12px; color: var(--muted); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+    .citation-list { display: grid; gap: 10px; }
+    .citation {
+      display: block;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      text-decoration: none;
+      background: rgba(255,255,255,.025);
+    }
+    .citation:hover { border-color: rgba(117,201,200,.5); }
+    .citation strong { color: var(--accent-2); margin-right: 7px; }
+    .citation small { display: block; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+    footer { margin-top: 18px; color: var(--muted); text-align: center; font-size: .76rem; }
+
+    @media (max-width: 700px) {
+      main { padding-top: 30px; }
+      header { display: block; }
+      .status { margin-top: 22px; }
+      .actions { align-items: flex-end; }
+      .hint { max-width: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <div class="eyebrow">DocsMind / grounded retrieval</div>
+        <h1>Ask the <span>Volkswagen Group</span> corpus.</h1>
+        <p class="lede">Answers are generated only from retrieved Wikipedia passages. Every supported claim should point back to its source.</p>
+      </div>
+      <div id="status" class="status"><span class="dot"></span><span>Checking system</span></div>
+    </header>
+
+    <section class="panel">
+      <form id="query-form">
+        <label for="question">Your question</label>
+        <textarea id="question" maxlength="2000" required placeholder="How are the MEB and PPE platforms different?"></textarea>
+        <div class="actions">
+          <span class="hint">Enter to ask · Shift+Enter for a new line</span>
+          <button id="submit" type="submit">Find an answer</button>
+        </div>
+      </form>
+      <div class="examples" aria-label="Example questions">
+        <button class="example" type="button">Which brands belong to Volkswagen Group?</button>
+        <button class="example" type="button">How are MEB and PPE different?</button>
+        <button class="example" type="button">What platform does the Golf Mk7 use?</button>
+      </div>
+    </section>
+
+    <section id="result" class="panel" aria-live="polite">
+      <div class="result-head">
+        <h2>Grounded answer</h2>
+        <span id="meta" class="meta"></span>
+      </div>
+      <div id="answer" class="answer"></div>
+      <div id="citations" class="citations" hidden>
+        <h3>Sources used</h3>
+        <div id="citation-list" class="citation-list"></div>
+      </div>
+    </section>
+
+    <footer>BGE-M3 query embeddings · OpenSearch hybrid retrieval · self-hosted vLLM generation</footer>
+  </main>
+
+  <script>
+    const form = document.querySelector('#query-form');
+    const question = document.querySelector('#question');
+    const submit = document.querySelector('#submit');
+    const result = document.querySelector('#result');
+    const answer = document.querySelector('#answer');
+    const meta = document.querySelector('#meta');
+    const citations = document.querySelector('#citations');
+    const citationList = document.querySelector('#citation-list');
+    const status = document.querySelector('#status');
+
+    async function checkReady() {
+      try {
+        const response = await fetch('/ready', {cache: 'no-store'});
+        status.className = response.ok ? 'status ready' : 'status error';
+        status.lastElementChild.textContent = response.ok ? 'System ready' : 'System warming up';
+      } catch (_) {
+        status.className = 'status error';
+        status.lastElementChild.textContent = 'System unavailable';
+      }
+    }
+
+    function safeSourceUrl(source) {
+      try {
+        const parsed = new URL(source);
+        return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : null;
+      } catch (_) { return null; }
+    }
+
+    function renderCitations(items) {
+      citationList.replaceChildren();
+      citations.hidden = !items.length;
+      for (const item of items) {
+        const url = safeSourceUrl(item.source);
+        const card = document.createElement(url ? 'a' : 'div');
+        card.className = 'citation';
+        if (url) {
+          card.href = url;
+          card.target = '_blank';
+          card.rel = 'noopener noreferrer';
+        }
+        const title = document.createElement('div');
+        const marker = document.createElement('strong');
+        marker.textContent = `[${item.marker}]`;
+        title.append(marker, document.createTextNode(item.source));
+        const snippet = document.createElement('small');
+        snippet.textContent = item.snippet;
+        card.append(title, snippet);
+        citationList.append(card);
+      }
+    }
+
+    async function ask() {
+      const text = question.value.trim();
+      if (!text) return;
+      submit.disabled = true;
+      submit.textContent = 'Searching…';
+      result.classList.add('visible');
+      answer.className = 'answer';
+      answer.textContent = 'Embedding the question and searching the corpus…';
+      meta.textContent = '';
+      citations.hidden = true;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 180000);
+      try {
+        const response = await fetch('/query', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({question: text}),
+          signal: controller.signal,
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `Request failed (${response.status})`);
+        answer.textContent = payload.grounded ? payload.answer : 'The indexed sources do not contain enough context to answer this question.';
+        meta.textContent = `${payload.model} · ${(payload.latency_ms / 1000).toFixed(1)}s`;
+        renderCitations(payload.citations || []);
+      } catch (error) {
+        answer.className = 'answer error';
+        answer.textContent = error.name === 'AbortError' ? 'The request timed out. Try again.' : error.message;
+      } finally {
+        clearTimeout(timeout);
+        submit.disabled = false;
+        submit.textContent = 'Find an answer';
+      }
+    }
+
+    form.addEventListener('submit', event => { event.preventDefault(); ask(); });
+    question.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); ask(); }
+    });
+    document.querySelectorAll('.example').forEach(button => {
+      button.addEventListener('click', () => { question.value = button.textContent; question.focus(); });
+    });
+    checkReady();
+  </script>
+</body>
+</html>

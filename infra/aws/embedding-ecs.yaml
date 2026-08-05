@@ -6,6 +6,12 @@ Parameters:
     Type: AWS::EC2::VPC::Id
   SubnetId:
     Type: AWS::EC2::Subnet::Id
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: At least two public subnets in different AZs for the application ALB.
+  AllowedCidr:
+    Type: String
+    Description: Development workstation CIDR allowed to open the DocsMind UI.
   InstanceType:
     Type: String
     Default: m7i.large
@@ -16,6 +22,27 @@ Parameters:
   OpenSearchCollectionArn:
     Type: String
     Description: ARN of the OpenSearch Serverless collection used by ingestion.
+  OpenSearchCollectionName:
+    Type: String
+    Default: docsmind-dev
+  OpenSearchEndpoint:
+    Type: String
+    Description: HTTPS endpoint for the OpenSearch Serverless collection.
+  OpenSearchIndexName:
+    Type: String
+    Default: docsmind-volkswagen-wikipedia-bge-m3-v1
+  AppImageRepository:
+    Type: String
+    Default: docsmind-app
+  AppImageTag:
+    Type: String
+    Default: latest
+  VllmBaseUrl:
+    Type: String
+    Default: https://3-93-177-175.sslip.io/v1
+  VllmModel:
+    Type: String
+    Default: openclaw
   EcsAmiId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
@@ -48,6 +75,29 @@ Resources:
     Properties:
       LogGroupName: /ecs/docsmind-embedding-dev
       RetentionInDays: 7
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/docsmind-app-dev
+      RetentionInDays: 7
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  VllmApiKeySecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: docsmind/vllm-api-key
+      Description: Bearer token used by the DocsMind app to call the vLLM endpoint.
+      GenerateSecretString:
+        PasswordLength: 48
+        ExcludePunctuation: true
       Tags:
         - Key: Project
           Value: DocsMind
@@ -90,7 +140,69 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: docsmind-app-secret-read
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref VllmApiKeySecret
       Tags:
+        - Key: Project
+          Value: DocsMind
+
+  AppTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-app-task
+      Description: Read-only runtime identity for the hosted DocsMind query path.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: docsmind-opensearch-query-api
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: aoss:APIAccessAll
+                Resource: !Ref OpenSearchCollectionArn
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
+
+  AppDataAccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: docsmind-app-read
+      Type: data
+      Description: Read-only access from the DocsMind ECS application.
+      Policy: !Sub >-
+        [{"Description":"docsmind-app-index-read","Rules":[{"ResourceType":"collection","Resource":["collection/${OpenSearchCollectionName}"],"Permission":["aoss:DescribeCollectionItems"]},{"ResourceType":"index","Resource":["index/${OpenSearchCollectionName}/${OpenSearchIndexName}"],"Permission":["aoss:DescribeIndex","aoss:ReadDocument"]}],"Principal":["${AppTaskRole.Arn}"]}]
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: IP-restricted HTTP ingress for the DocsMind development UI
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref AllowedCidr
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: docsmind-app-dev-alb
         - Key: Project
           Value: DocsMind
 
@@ -125,7 +237,11 @@ Resources:
     Properties:
       GroupDescription: No-ingress security group for the DocsMind embedding host
       VpcId: !Ref VpcId
-      SecurityGroupIngress: []
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: "-1"
           CidrIp: 0.0.0.0/0
@@ -185,6 +301,8 @@ Resources:
       AutoScalingGroupName: docsmind-embedding-dev
       VPCZoneIdentifier:
         - !Ref SubnetId
+      TargetGroupARNs:
+        - !Ref AppTargetGroup
       MinSize: 0
       MaxSize: 1
       DesiredCapacity: !Ref DesiredCapacity
@@ -241,6 +359,7 @@ Resources:
         - EC2
       NetworkMode: bridge
       ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt AppTaskRole.Arn
       Volumes:
         - Name: model-cache
           Host:
@@ -291,11 +410,124 @@ Resources:
               awslogs-group: !Ref LogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: tei
+        - Name: app
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/${AppImageRepository}:${AppImageTag}
+          Essential: true
+          Cpu: 128
+          MemoryReservation: 512
+          Memory: 768
+          DependsOn:
+            - ContainerName: tei
+              Condition: HEALTHY
+          Links:
+            - tei:embedding
+          PortMappings:
+            - ContainerPort: 8000
+              HostPort: 8000
+              Protocol: tcp
+          Environment:
+            - Name: DOCSMIND_EMBEDDING_PROVIDER
+              Value: tei
+            - Name: DOCSMIND_TEI_EMBED_MODEL
+              Value: !Ref EmbeddingModel
+            - Name: DOCSMIND_TEI_EMBED_DIMENSIONS
+              Value: "1024"
+            - Name: DOCSMIND_TEI_BASE_URL
+              Value: http://embedding:80
+            - Name: DOCSMIND_TEI_EMBED_BATCH_SIZE
+              Value: "8"
+            - Name: DOCSMIND_VECTOR_BACKEND
+              Value: opensearch
+            - Name: DOCSMIND_OPENSEARCH_ENDPOINT
+              Value: !Ref OpenSearchEndpoint
+            - Name: DOCSMIND_OPENSEARCH_INDEX
+              Value: !Ref OpenSearchIndexName
+            - Name: DOCSMIND_AWS_REGION
+              Value: !Ref AWS::Region
+            - Name: DOCSMIND_AWS_PROFILE
+              Value: ""
+            - Name: DOCSMIND_INDEX_DIR
+              Value: /tmp/docsmind-index
+            - Name: DOCSMIND_RETRIEVAL_MODE
+              Value: hybrid
+            - Name: DOCSMIND_RERANK_ENABLED
+              Value: "false"
+            - Name: DOCSMIND_LLM_PROVIDER
+              Value: vllm
+            - Name: DOCSMIND_VLLM_MODEL
+              Value: !Ref VllmModel
+            - Name: DOCSMIND_VLLM_BASE_URL
+              Value: !Ref VllmBaseUrl
+            - Name: DOCSMIND_MAX_TOKENS
+              Value: "512"
+          Secrets:
+            - Name: DOCSMIND_VLLM_API_KEY
+              ValueFrom: !Ref VllmApiKeySecret
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=3)" || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 120
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref AppLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: app
       Tags:
         - Key: Project
           Value: DocsMind
         - Key: Model
           Value: !Ref EmbeddingModel
+
+  AppTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: docsmind-app-dev
+      VpcId: !Ref VpcId
+      Port: 8000
+      Protocol: HTTP
+      TargetType: instance
+      HealthCheckEnabled: true
+      HealthCheckPath: /ready
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      Matcher:
+        HttpCode: "200"
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  AppLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: docsmind-app-dev
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Subnets: !Ref PublicSubnetIds
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
+
+  AppListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref AppLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AppTargetGroup
 
   Service:
     Type: AWS::ECS::Service
@@ -338,3 +570,11 @@ Outputs:
     Value: !Sub "${EmbeddingModel}@${EmbeddingModelRevision}"
   OpenSearchIngestionRoleArn:
     Value: !GetAtt OpenSearchIngestionRole.Arn
+  AppTaskRoleArn:
+    Value: !GetAtt AppTaskRole.Arn
+  AppUrl:
+    Value: !Sub http://${AppLoadBalancer.DNSName}
+  AppTargetGroupArn:
+    Value: !Ref AppTargetGroup
+  VllmApiKeySecretArn:
+    Value: !Ref VllmApiKeySecret

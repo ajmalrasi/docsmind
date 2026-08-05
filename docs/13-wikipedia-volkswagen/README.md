@@ -191,6 +191,134 @@ Every section carries:
 citations point to the article rather than the JSONL filename. The revision ID
 makes an evaluation result explainable even after Wikipedia changes.
 
+## Exact chunk and metadata contract
+
+At the **Chunk** stage, the transformation is:
+
+```text
+Wikipedia JSONL article
+  -> one LlamaIndex Document per retained heading section
+  -> SentenceSplitter(chunk_size=512, chunk_overlap=64)
+  -> DocsMind Chunk
+  -> OpenSearch document plus 1,024-dimensional BGE-M3 vector
+```
+
+This is structure-aware sentence chunking, not semantic chunking. Headings set
+the first boundary. `SentenceSplitter` then tries to keep sentences intact while
+bounding a long section to approximately 512 tokens. Adjacent chunks repeat up
+to 64 tokens so a statement crossing the boundary is not completely separated.
+The final chunk in a section is usually shorter.
+
+### Text sent to the chunker
+
+`load_wikipedia_documents()` creates the exact section text below before
+splitting:
+
+```text
+Article: Volkswagen Golf Mk7
+Section: Powertrain > Golf GTI
+
+<normalized section paragraphs, lists, and pipe-delimited tables>
+```
+
+The article and section header is part of the embedded text. It gives every
+child chunk local meaning even when the passage itself starts halfway through a
+long section.
+
+### Complete Wikipedia metadata
+
+Every section `Document`, and therefore every chunk created from it, carries:
+
+| Field | Example | Purpose |
+|---|---|---|
+| `source_type` | `wikipedia` | Lets downstream code distinguish corpus adapters |
+| `title` | `Volkswagen Golf Mk7` | Canonical article title |
+| `requested_title` | `Volkswagen Golf (Mk7)` | Manifest seed before redirect resolution |
+| `section` | `Powertrain > Golf GTI` | Heading path that localized the passage |
+| `source_url` | `https://en.wikipedia.org/...` | Citation target returned by the API |
+| `page_id` | `12345` | Stable MediaWiki page identity |
+| `revision_id` | `987654321` | Exact article revision used for the index |
+| `revision_timestamp` | ISO-8601 timestamp | When Wikipedia published that revision |
+| `fetched_at` | ISO-8601 timestamp | When DocsMind captured the snapshot |
+| `language` | `en` | Corpus language for future multilingual routing |
+| `license` | `CC BY-SA 4.0` | Attribution and reuse provenance |
+
+The section-level document ID is deterministic:
+
+```text
+wikipedia:<page_id>:<revision_id>:<section_index>
+```
+
+LlamaIndex creates a node ID for each split chunk. `chunk_documents()` maps the
+node to DocsMind's backend-neutral contract:
+
+```json
+{
+  "id": "<llamaindex-node-id>",
+  "text": "Article: ...\nSection: ...\n\n...",
+  "source": "https://en.wikipedia.org/wiki/...",
+  "metadata": {"source_type": "wikipedia", "title": "..."}
+}
+```
+
+`source` uses the first available value in this order:
+
+```text
+source_url -> file_name -> file_path -> title -> "unknown"
+```
+
+Wikipedia therefore resolves to its canonical URL. Other corpus adapters can
+reuse the same `Chunk` schema without pretending that every source is a web
+page.
+
+### Record stored in OpenSearch
+
+For each chunk, `OpenSearchVectorStore.add()` writes:
+
+```json
+{
+  "_id": "<insertion_order>:<chunk_id>",
+  "_source": {
+    "insertion_order": 0,
+    "chunk_id": "<llamaindex-node-id>",
+    "text": "Article: ...\nSection: ...\n\n...",
+    "source": "https://en.wikipedia.org/wiki/...",
+    "metadata": {
+      "source_type": "wikipedia",
+      "title": "Volkswagen Golf Mk7",
+      "requested_title": "Volkswagen Golf (Mk7)",
+      "section": "Powertrain > Golf GTI",
+      "source_url": "https://en.wikipedia.org/wiki/...",
+      "page_id": 12345,
+      "revision_id": 987654321,
+      "revision_timestamp": "...",
+      "fetched_at": "...",
+      "language": "en",
+      "license": "CC BY-SA 4.0"
+    },
+    "embedding": ["1,024 float values omitted"]
+  }
+}
+```
+
+`insertion_order` makes the complete chunk scan deterministic when the hybrid
+retriever rebuilds BM25. Prefixing the OpenSearch `_id` with that order prevents
+two repeated source IDs from overwriting each other.
+
+The OpenSearch mapping sets `metadata` to `enabled=false`. The complete object
+is preserved in `_source` and returned with citations, but OpenSearch does not
+create a searchable field for every arbitrary metadata key. That prevents
+mapping explosion across different corpus adapters. The trade-off is that a
+future metadata filter such as `language=en` or `section=Powertrain` requires
+promoting that field into the explicit mapping and re-indexing.
+
+In an interview, the important question is not “did you use 512-token chunks?”
+It is: “which boundaries were preserved, what provenance survived splitting,
+how did IDs prevent overwrites, and what retrieval evidence justified 512/64?”
+The current evaluation validates retrieval at 512/64. It does not yet prove
+that this size beats 256/32 or semantic chunking; those require a controlled
+comparison on the same labeled questions.
+
 ## What to measure
 
 The first retrieval evaluation should compare these paths on the same labeled

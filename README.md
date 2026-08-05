@@ -34,6 +34,7 @@ Question -> BM25 search -----+-> RRF fusion -> optional rerank
 | Generate | Anthropic, Ollama, vLLM, or a vLLM-primary/cloud-fallback router |
 | Ground and cite | Context-only prompt, inline source citations, and `INSUFFICIENT_CONTEXT` guardrail |
 | Serve | FastAPI `/health` and `/query` endpoints |
+| Web application | Volkswagen chat UI and an IP-restricted AWS ALB/ECS deployment |
 | Evaluate | Retrieval benchmarks, labeled query sets, answer-review helpers, and vLLM latency/throughput benchmarks |
 
 ### Why BM25 and dense retrieval both exist
@@ -256,6 +257,12 @@ Face TEI on one CPU `m7i.large` managed by ECS on EC2. The host has no inbound
 security-group rules; development access uses an SSM port-forwarding session.
 The measured CPU baseline and start/stop workflow are in
 [the AWS embedding-service guide](docs/14-aws-embedding-service/README.md).
+
+The hosted application packages the Volkswagen chat UI and FastAPI query path
+into one ECR image. ECS runs it beside the private TEI container, and an
+IP-restricted ALB exposes the UI during development. The app task receives a
+read-only OpenSearch identity and its vLLM key from Secrets Manager. See the
+[AWS hosted application guide](docs/15-aws-hosted-app/README.md).
 
 The Makefile still contains `digitalocean-*` targets from the earlier remote
 development workflow. They are optional rsync/SSH helpers, not a requirement and
