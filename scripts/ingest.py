@@ -1,4 +1,4 @@
-"""Build the FAISS index from the document corpus.
+"""Build the configured vector index from the document corpus.
 
 Usage: python -m scripts.ingest
 """
@@ -35,9 +35,14 @@ def main() -> None:
     store = new_store(settings, dim=embedder.dim)
     store.add(chunks, embeddings)
     store.save(settings.index_dir)
+    location = (
+        settings.opensearch_endpoint
+        if settings.vector_backend == "opensearch"
+        else str(settings.index_dir)
+    )
     print(
         f"Saved {store.size} vectors (index_type={store.index_type}) "
-        f"to {settings.index_dir}"
+        f"to {location}"
     )
 
 

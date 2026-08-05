@@ -11,6 +11,10 @@ from pathlib import Path
 from llama_index.core import SimpleDirectoryReader
 from llama_index.core.schema import Document
 
+from docsmind.ingestion.briskoda import (
+    BRISKODA_JSONL_SUFFIX,
+    load_briskoda_documents,
+)
 from docsmind.ingestion.whatsapp import (
     WHATSAPP_JSONL_SUFFIX,
     load_whatsapp_documents,
@@ -37,6 +41,7 @@ def load_documents(
         if path.is_file() and path.suffix.lower() in SUPPORTED_EXTS
     )
     whatsapp_files = sorted(data_dir.rglob(f"*{WHATSAPP_JSONL_SUFFIX}"))
+    briskoda_files = sorted(data_dir.rglob(f"*{BRISKODA_JSONL_SUFFIX}"))
 
     documents: list[Document] = []
     if regular_files:
@@ -51,6 +56,9 @@ def load_documents(
                 max_messages=whatsapp_max_messages,
             )
         )
+
+    for path in briskoda_files:
+        documents.extend(load_briskoda_documents(path))
 
     if not documents:
         raise ValueError(f"No supported documents found under: {data_dir}")

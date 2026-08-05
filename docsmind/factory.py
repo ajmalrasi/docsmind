@@ -30,6 +30,21 @@ def _qdrant_path(settings: Settings):
 
 def new_store(settings: Settings, dim: int) -> VectorStore:
     """A fresh, empty store for ingestion, configured per backend + index type."""
+    if settings.vector_backend == "opensearch":
+        from docsmind.index.opensearch_store import OpenSearchVectorStore
+
+        return OpenSearchVectorStore(
+            dim=dim,
+            endpoint=settings.opensearch_endpoint,
+            index_name=settings.opensearch_index,
+            region=settings.aws_region,
+            profile_name=settings.aws_profile,
+            bulk_size=settings.opensearch_bulk_size,
+            page_size=settings.opensearch_page_size,
+            request_timeout=settings.opensearch_request_timeout,
+            max_retries=settings.opensearch_max_retries,
+            recreate=True,
+        )
     if settings.vector_backend == "qdrant":
         from docsmind.index.qdrant_store import QdrantVectorStore
 
@@ -65,6 +80,16 @@ def new_store(settings: Settings, dim: int) -> VectorStore:
 
 def load_store(settings: Settings) -> VectorStore:
     """Load a persisted store from disk (or reconnect to the Qdrant collection)."""
+    if settings.vector_backend == "opensearch":
+        from docsmind.index.opensearch_store import OpenSearchVectorStore
+
+        return OpenSearchVectorStore.load(
+            settings.index_dir,
+            endpoint=settings.opensearch_endpoint or None,
+            index_name=settings.opensearch_index,
+            region=settings.aws_region,
+            profile_name=settings.aws_profile,
+        )
     if settings.vector_backend == "qdrant":
         from docsmind.index.qdrant_store import QdrantVectorStore
 

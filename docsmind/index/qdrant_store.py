@@ -8,7 +8,7 @@ never learn which one is underneath. What changes is *where the index lives*:
     Qdrant  a separate service. Here it runs in one of two modes:
               - local path : Qdrant persists to a directory, no server needed
                              (the default — keeps tests and `make demo` offline).
-              - server URL : a Dockerized Qdrant (e.g. on beast) reachable over
+              - server URL : a Dockerized Qdrant on DigitalOcean reachable over
                              HTTP, which is the "real" deployment shape.
 
 Qdrant builds an HNSW graph internally for every collection, so its search is
