@@ -269,6 +269,12 @@ on the existing CPU service. The exact topology and current state are in the
 step, failure, fix, and acceptance boundary is recorded in the
 [complete engineering log](docs/16-aws-gpu-ecs/migration-log.md).
 
+The planned S3-to-search ingestion architecture is documented in the
+[Airflow ingestion guide](docs/17-s3-airflow-ingestion/README.md). Airflow
+orchestrates incremental batch work; FastAPI continues serving online queries
+through the embedding endpoint. The two workloads share capacity only with
+bounded concurrency and priority controls.
+
 The hosted application packages the Volkswagen chat UI and FastAPI query path
 into one ECR image. ECS runs it beside the private TEI container, and an
 IP-restricted ALB exposes the UI during development. The app task receives a
