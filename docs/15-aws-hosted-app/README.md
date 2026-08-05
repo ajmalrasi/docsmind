@@ -224,6 +224,43 @@ language answer was correct, yet the machine-consumed citation contract failed.
 The fix belongs at both layers—clearer prompting and defensive parsing—and the
 evidence is the before/after API response, not a subjective visual judgment.
 
+## Deployed evidence — 2026-08-06
+
+The final AWS development deployment produced:
+
+| Evidence | Result |
+|---|---|
+| ECR repository | `docsmind-app` |
+| Deployed image tag | `a9aa044cb5e2` |
+| ECS task definition | `docsmind-embedding-cpu:5` |
+| ECS containers | `tei` healthy, `app` healthy |
+| ALB target | Healthy |
+| `/ready` | HTTP 200, `ready` |
+| `/health` index size | 1,776 |
+| Vector backend | OpenSearch |
+| Retrieval mode | Hybrid dense + BM25/RRF |
+| Generator | vLLM model alias `openclaw` |
+
+The final browser-level question was:
+
+```text
+What platform does the Golf Mk7 use?
+```
+
+The live UI returned:
+
+```text
+The Golf Mk7 uses the MQB platform [1][2][3].
+```
+
+Observed end-to-end API latency was approximately 1.9–2.35 seconds across the
+final browser and curl requests. The response included three populated citation
+objects linking to the Volkswagen Golf Mk7 and Volkswagen Golf Wikipedia pages.
+
+No corpus fetch, chunking, embedding ingestion, or index rebuild ran during this
+deployment. BGE-M3 embedded only the user questions. OpenSearch continued to
+serve the already-persisted 1,776-vector index.
+
 In an interview, the real question is not “did you push a Docker image to ECR?”
 It is: “how did the image receive identity and secrets, how did readiness prevent
 bad tasks from receiving traffic, why was the topology coupled, and what would
