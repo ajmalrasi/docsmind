@@ -1,0 +1,127 @@
+{
+  "corpus_version": "volkswagen-wikipedia-v1",
+  "label_status": "author_curated_source_titles",
+  "description": "Source-level retrieval labels for comparing embedding models on the same Volkswagen Wikipedia snapshot. Multiple titles are allowed when either article is a valid source.",
+  "queries": [
+    {
+      "id": "mqb_layout",
+      "question": "Which Volkswagen platform standardizes transverse front-engine cars and debuted with the Golf Mk7?",
+      "relevant_titles": ["Volkswagen Group MQB platform", "Volkswagen Golf Mk7"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "meb_meaning",
+      "question": "What is the modular electric-drive toolkit used for Volkswagen Group electric cars?",
+      "relevant_titles": ["Volkswagen Group MEB platform"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "ppe_developers",
+      "question": "Which electric vehicle platform was jointly developed by Audi and Porsche for larger vehicles?",
+      "relevant_titles": ["Volkswagen Group Premium Platform Electric"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "ppe_first_car",
+      "question": "What was the first car officially announced for the Premium Platform Electric architecture?",
+      "relevant_titles": ["Volkswagen Group Premium Platform Electric"],
+      "kind": "exact"
+    },
+    {
+      "id": "vr6_compact",
+      "question": "Why is Volkswagen's VR6 engine more compact than a conventional V6?",
+      "relevant_titles": ["VR6 engine"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "tdi_definition",
+      "question": "What does TDI mean in Volkswagen Group engine terminology?",
+      "relevant_titles": ["TDI (engine)"],
+      "kind": "exact"
+    },
+    {
+      "id": "dsg_definition",
+      "question": "What kind of transmission is a DSG and how are its clutches arranged?",
+      "relevant_titles": ["Direct-shift gearbox"],
+      "kind": "exact"
+    },
+    {
+      "id": "fourmotion_brand",
+      "question": "Which Volkswagen brand name is used for its four-wheel-drive cars?",
+      "relevant_titles": ["4motion"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "quattro_brand",
+      "question": "What name does Audi use for its four-wheel-drive system?",
+      "relevant_titles": ["Quattro (four-wheel-drive system)", "4motion"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "emissions_defeat_device",
+      "question": "What software behavior caused the Volkswagen diesel emissions scandal?",
+      "relevant_titles": ["Volkswagen emissions scandal", "TDI (engine)"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "id4_platform",
+      "question": "Which modular platform underpins the Volkswagen ID.4 electric crossover?",
+      "relevant_titles": ["Volkswagen ID.4", "Volkswagen Group MEB platform"],
+      "kind": "exact"
+    },
+    {
+      "id": "enyaq_platform",
+      "question": "Which Volkswagen Group architecture does the Škoda Enyaq share with the ID.4?",
+      "relevant_titles": ["Škoda Enyaq", "Volkswagen Group MEB platform"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "born_platform",
+      "question": "What platform and drivetrain layout are used by the Cupra Born?",
+      "relevant_titles": ["Cupra Born", "Volkswagen Group MEB platform"],
+      "kind": "exact"
+    },
+    {
+      "id": "golf_mk7_platform",
+      "question": "On which shared architecture is the seventh-generation Volkswagen Golf built?",
+      "relevant_titles": ["Volkswagen Golf Mk7", "Volkswagen Group MQB platform"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "traton_business",
+      "question": "Which Volkswagen Group subsidiary contains Scania and MAN commercial vehicle operations?",
+      "relevant_titles": ["Traton"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "ducati_parent",
+      "question": "Which Volkswagen Group company is the parent of motorcycle manufacturer Ducati?",
+      "relevant_titles": ["Ducati", "Lamborghini"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "id_buzz_type",
+      "question": "Which Volkswagen ID model is a battery-electric minivan inspired by the Type 2?",
+      "relevant_titles": ["Volkswagen ID. Buzz"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "phaeton_positioning",
+      "question": "Which Volkswagen model was the brand's full-size luxury flagship sedan?",
+      "relevant_titles": ["Volkswagen Phaeton"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "ea827_family",
+      "question": "Which Volkswagen water-cooled inline-four engine family began production in the 1970s?",
+      "relevant_titles": ["Volkswagen EA827 engine"],
+      "kind": "paraphrase"
+    },
+    {
+      "id": "scalable_systems_platform",
+      "question": "What future Volkswagen architecture is intended to consolidate multiple electric platforms into one scalable system?",
+      "relevant_titles": ["Volkswagen Group Scalable Systems Platform"],
+      "kind": "paraphrase"
+    }
+  ]
+}

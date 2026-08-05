@@ -39,6 +39,13 @@ case "$ACTION" in
       echo "A VPC and public subnet are required. Set VPC_ID and SUBNET_ID." >&2
       exit 1
     fi
+    OPENSEARCH_COLLECTION_ARN="${OPENSEARCH_COLLECTION_ARN:-$(aws_cli opensearchserverless \
+      batch-get-collection --names "${OPENSEARCH_COLLECTION_NAME:-docsmind-dev}" \
+      --query 'collectionDetails[0].arn' --output text)}"
+    if [[ "$OPENSEARCH_COLLECTION_ARN" == "None" ]]; then
+      echo "OpenSearch collection was not found. Set OPENSEARCH_COLLECTION_ARN." >&2
+      exit 1
+    fi
     aws_cli cloudformation deploy \
       --stack-name "$STACK_NAME" \
       --template-file infra/aws/embedding-ecs.yaml \
@@ -46,6 +53,7 @@ case "$ACTION" in
       --parameter-overrides \
         VpcId="$VPC_ID" \
         SubnetId="$SUBNET_ID" \
+        OpenSearchCollectionArn="$OPENSEARCH_COLLECTION_ARN" \
         InstanceType="${EMBEDDING_INSTANCE_TYPE:-m7i.large}" \
         DesiredCapacity=1 \
       --tags Project=DocsMind Environment=development

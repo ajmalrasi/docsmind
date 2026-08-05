@@ -5,6 +5,11 @@ CloudFormation rollback, CPU OOM, batch-limit 429, application batching fix,
 credential dependency, and incomplete ingestion—see
 [the build log](build-log.md).
 
+For the exact first full-corpus execution topology, command, batching behavior,
+live CPU/memory evidence, authorization path, progress, failure semantics, and
+post-ingestion verification checklist, see the
+[2026-08-05 ingestion run record](ingestion-run-2026-08-05.md).
+
 ## Where this fits
 
 This service owns one stage of the RAG pipeline:

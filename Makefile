@@ -7,7 +7,7 @@
 
 DIGITALOCEAN_HOST ?=
 DIGITALOCEAN_DIR  ?= /home/docsmind/app
-PY          ?= python
+PY          ?= python3
 VENV        ?= .venv
 WHATSAPP_ZIP ?=
 AWS_PROFILE ?= ml-prep-deploy
@@ -109,6 +109,10 @@ aws-embedding-logs: ## Follow TEI container logs in CloudWatch
 .PHONY: aws-embedding-benchmark
 aws-embedding-benchmark: ## Benchmark TEI through the localhost SSM tunnel
 	$(VENV)/bin/python -m scripts.embedding_benchmark $(ARGS)
+
+.PHONY: wikipedia-embedding-eval
+wikipedia-embedding-eval: ## Compare bge-small and BGE-M3 persisted Wikipedia indexes
+	$(VENV)/bin/python -m scripts.wikipedia_embedding_eval $(ARGS)
 
 # ---------- DigitalOcean (remote) ----------
 

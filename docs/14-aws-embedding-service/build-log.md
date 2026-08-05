@@ -343,6 +343,63 @@ This failure was found before the user-run ingestion. Without the dependency,
 embedding could finish successfully and then OpenSearch connection setup would
 fail—a particularly wasteful ordering for a long CPU job.
 
+### Local Python command portability
+
+After adding `awscrt`, `make install` still failed before pip ran because the
+Makefile used `python`, while this Mac exposes Python as `python3`.
+
+**Fix:** change the configurable Make variable from `PY ?= python` to
+`PY ?= python3`. The existing virtual environment remained valid, and the
+corrected target installed `awscrt` successfully.
+
+### Root login could not become the ingestion role
+
+The Mac's `ml-prep-deploy` login resolves to the AWS account root. Adding root
+temporarily to the OpenSearch data-access policy still returned HTTP 403. A
+dedicated `docsmind-opensearch-ingestion` role was then added to CloudFormation,
+but AWS correctly refused `AssumeRole` from a root-account session.
+
+**Fix:** remove root from the data policy and keep only restricted principals:
+the existing `docsmind-beast` IAM user and the new ingestion role for future
+normal IAM/SSO callers. The actual ingestion runs on Beast using its existing
+short-scope OpenSearch credentials. No new long-lived access key was created.
+
+This produced a concrete security lesson: root can administer the account, but
+it is the wrong runtime identity. Production data-plane work should use an IAM
+role or tightly scoped workload identity from the beginning.
+
+### Connecting the authorized runtime to private TEI
+
+Beast could access OpenSearch but could not directly reach TEI because the ECS
+host has no inbound rules. The Mac could reach TEI through SSM, so ingestion
+used two private tunnels:
+
+```text
+Beast localhost:8080
+  -> reverse SSH tunnel to Mac localhost:8080
+  -> SSM port forwarding to EC2 localhost:8080
+  -> TEI container port 80
+```
+
+The path was verified from Beast with `/info` before ingestion. It reported the
+pinned BGE-M3 model revision and the batch limit of eight.
+
+### Remote sync layout mistake
+
+The first manual rsync used multiple directory sources with trailing slashes and
+copied their contents into the remote project root. This created duplicate
+source and test files outside their intended directories.
+
+**Fix:** identify the exact files and directories created by that command,
+remove only those copies, resync `docsmind`, `scripts`, `tests`, `infra`, and
+`docs` as named directories, compare hashes for representative files, and run
+remote imports. `.env`, AWS credentials, private corpora, runtime indexes, Git
+metadata, and `.venv` were excluded from the cleanup and sync.
+
+The operational lesson is to verify destination topology after rsync, not only
+its exit status. A successful file-transfer command can still produce an
+incorrect application layout.
+
 ## Measurements and what they mean
 
 The short synthetic benchmark over the SSM tunnel measured:

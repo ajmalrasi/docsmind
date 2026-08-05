@@ -13,6 +13,9 @@ Parameters:
     Type: Number
     Default: 1
     AllowedValues: [0, 1]
+  OpenSearchCollectionArn:
+    Type: String
+    Description: ARN of the OpenSearch Serverless collection used by ingestion.
   EcsAmiId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
@@ -90,6 +93,32 @@ Resources:
       Tags:
         - Key: Project
           Value: DocsMind
+
+  OpenSearchIngestionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-opensearch-ingestion
+      Description: Short-lived role for DocsMind OpenSearch ingestion and evaluation.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: docsmind-opensearch-api
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: aoss:APIAccessAll
+                Resource: !Ref OpenSearchCollectionArn
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -307,3 +336,5 @@ Outputs:
     Value: "8080"
   Model:
     Value: !Sub "${EmbeddingModel}@${EmbeddingModelRevision}"
+  OpenSearchIngestionRoleArn:
+    Value: !GetAtt OpenSearchIngestionRole.Arn
