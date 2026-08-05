@@ -10,6 +10,10 @@ live CPU/memory evidence, authorization path, progress, failure semantics, and
 post-ingestion verification checklist, see the
 [2026-08-05 ingestion run record](ingestion-run-2026-08-05.md).
 
+The completed 20-query bge-small versus BGE-M3 dense/hybrid comparison is in
+[the Volkswagen embedding evaluation](wikipedia-embedding-eval.md), with raw
+per-query evidence in `wikipedia-embedding-eval.json`.
+
 ## Where this fits
 
 This service owns one stage of the RAG pipeline:

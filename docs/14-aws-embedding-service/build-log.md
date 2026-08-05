@@ -500,3 +500,17 @@ The real depth signal is the chain from observation to decision:
 Failure evidence -> root cause -> smallest safe fix -> measured behavior
                  -> explicit trade-off -> next validation gate
 ```
+
+## Completed full-corpus result
+
+The later full run completed successfully after 55 minutes 31.38 seconds. It
+stored 1,776 BGE-M3 vectors in the isolated OpenSearch index, verified a
+1,024-dimensional cosine mapping, and wrote matching reconnect and embedding
+manifests.
+
+On 20 source-labeled Volkswagen questions, BGE-M3 dense alone did not beat the
+bge-small baseline at Hit@1. BGE-M3 with the existing BM25/RRF hybrid path
+produced the best result: 0.80 Hit@1, 0.95 Hit@3, and 0.871 MRR. Its CPU p50 was
+3.98 seconds, versus 0.82 seconds for the bge-small hybrid baseline. The result
+supports BGE-M3 as a hybrid retrieval candidate while making GPU latency/cost
+comparison the next deployment gate.

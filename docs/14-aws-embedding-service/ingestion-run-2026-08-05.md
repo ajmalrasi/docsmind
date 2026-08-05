@@ -1,27 +1,24 @@
 # BGE-M3 Volkswagen ingestion run — 2026-08-05
 
-This is the detailed record of the first full BGE-M3 ingestion attempt for the
-versioned Volkswagen Wikipedia corpus. It describes the live state captured
-while the job was still embedding. Final OpenSearch counts and retrieval
-evaluation results must be appended only after those steps complete.
+This is the detailed record of the first completed BGE-M3 ingestion for the
+versioned Volkswagen Wikipedia corpus. It includes the live observations made
+during embedding and the final OpenSearch and retrieval-evaluation evidence.
 
 ## Current status at the latest snapshot
 
 | Item | Observed value |
 |---|---:|
-| Ingestion process | Running |
-| Remote shell process | PID `528600` |
-| Python process | PID `528601` |
-| Elapsed time | 2,400 seconds / 40 minutes |
-| Estimated embeddings completed | 1,480 of 1,776 |
-| Progress | 83.3% |
-| Average sustained rate | 0.617 chunks/second |
-| Estimated remaining time | About 8 minutes |
+| Ingestion process | Completed successfully |
+| Exit status | 0 |
+| Total elapsed time | 55 minutes 31.38 seconds |
+| Embedded and stored chunks | 1,776 of 1,776 |
+| Progress | 100% |
+| Final average rate | 0.533 chunks/second |
+| OpenSearch document count | 1,776 |
 | ECS failed tasks during this run | 0 |
 
-The completion estimate is based on the cumulative TEI `te_embed_count`
-counter minus its value immediately before this run. It is an estimate until
-the ingestion process returns and OpenSearch reports the final document count.
+The Python process printed `Saved 1776 vectors (index_type=opensearch)` and
+exited normally. OpenSearch then independently reported the same count.
 
 ## Exactly what is running where
 
@@ -250,9 +247,11 @@ The short synthetic benchmark used brief automotive sentences and measured up
 to 5.91 texts/second at client batch eight. The Wikipedia corpus contains many
 much longer passages approaching the 512-token chunk limit.
 
-The live run averaged about 0.617 chunks/second at the latest snapshot. Longer
-transformer sequences require substantially more computation, so short-text
-throughput must not be used to estimate long-document ingestion cost.
+The live run averaged about 0.617 chunks/second at the 40-minute snapshot and
+0.533 chunks/second over the complete 55-minute run. Chunk lengths vary, so a
+partial-run rate is not a reliable final estimate. Longer transformer sequences
+require substantially more computation, and short-text throughput must not be
+used to estimate long-document ingestion cost.
 
 This is the relevant capacity conclusion:
 
@@ -352,10 +351,10 @@ to durable storage or use an idempotent queue keyed by chunk ID and embedding
 model revision. This development run keeps the implementation simple while
 making the limitation explicit.
 
-## What happens after the Python process returns
+## Completion verification
 
-Completion is not established by reaching 1,776 on the TEI counter alone. The
-following checks are required:
+Completion was not inferred from the TEI counter. The following independent
+checks all passed:
 
 1. The ingestion process exits with status zero.
 2. OpenSearch reports exactly 1,776 documents in the BGE-M3 index.
@@ -367,7 +366,7 @@ following checks are required:
 7. The labeled evaluation compares the old and new indexes without re-embedding
    either corpus.
 
-## Planned retrieval evaluation
+## Completed retrieval evaluation
 
 The versioned evaluation set is:
 
@@ -376,17 +375,25 @@ data/eval/volkswagen_wikipedia_queries.v1.json
 ```
 
 It contains 20 author-curated questions with one or more relevant source
-article titles. `scripts/wikipedia_embedding_eval.py` will compare:
+article titles. `scripts/wikipedia_embedding_eval.py` compared:
 
 ```text
 bge-small query -> existing 384-dimensional index -> dense and hybrid
 BGE-M3 query    -> new 1,024-dimensional index    -> dense and hybrid
 ```
 
-Reported metrics are Hit@1, Hit@3, MRR, mean latency, p50 latency, and p95
-latency. The corpus snapshot, chunking, OpenSearch backend, query set, rank
-depth, and hybrid configuration remain fixed. Only the embedding model and its
-matching index change.
+| Model and retrieval mode | Hit@1 | Hit@3 | MRR | p50 latency |
+|---|---:|---:|---:|---:|
+| bge-small dense | 0.75 | 0.85 | 0.824 | 818.78 ms |
+| bge-small hybrid | 0.75 | 0.90 | 0.848 | 817.42 ms |
+| BGE-M3 dense | 0.70 | 0.90 | 0.814 | 2,640.65 ms |
+| BGE-M3 hybrid | **0.80** | **0.95** | **0.871** | 3,979.51 ms |
+
+The corpus snapshot, chunking, OpenSearch backend, query set, rank depth, and
+hybrid configuration remained fixed. Only the embedding model and its matching
+index changed. BGE-M3 dense alone did not beat bge-small at rank one. BGE-M3
+with BM25/RRF produced the best quality, but CPU query latency was much higher.
+See [the full evaluation results](wikipedia-embedding-eval.md).
 
 These are source-level labels, not answer-faithfulness labels. They evaluate
 whether retrieval finds an appropriate article, not whether an LLM later writes
@@ -396,18 +403,24 @@ a grounded answer.
 
 The CPU host costs roughly $0.11/hour while running, including approximate
 compute, public IPv4, and prorated root-volume cost before small logging charges.
-At about 48 minutes for the projected embedding phase, the EC2 cost of this run
-is only a few cents. The important cost is engineering time and slow iteration,
-which is why the same workload should later be repeated on GPU.
+At 55 minutes 31 seconds, the approximate running infrastructure cost of the
+embedding phase was about $0.10 before small logging charges. The important
+cost is slow iteration, which is why the same workload should later be repeated
+on GPU.
 
-The service will be scaled to zero after ingestion verification and evaluation.
-Scale-to-zero terminates the root EBS volume, so the next cold start downloads
-the pinned model again.
+After ingestion verification and evaluation, ECS desired count and Auto Scaling
+desired capacity were set to zero and both temporary tunnels were closed. The
+EC2 instance entered termination. Scale-to-zero removes the root EBS volume, so
+the next cold start downloads the pinned model again.
 
-## Evidence available so far
+## Final evidence
 
 - Existing bge-small OpenSearch index: 1,776 documents
 - New BGE-M3 index before this run: absent
+- New BGE-M3 index after this run: 1,776 documents
+- Stored vector mapping: 1,024 dimensions, cosine similarity
+- Reconnect marker: present
+- Embedding manifest: provider `tei`, model `BAAI/bge-m3`, dimension 1,024
 - TEI model identity and revision: verified from Beast
 - OpenSearch access as `docsmind-beast`: verified
 - BGE-small 384-dimensional query vector: verified and normalized
@@ -415,7 +428,5 @@ the pinned model again.
 - ECS task during ingestion: healthy, zero failed tasks
 - CPU during ingestion: both cores saturated
 - Memory during ingestion: stable at approximately 1.92 GiB
-- Latest ingestion snapshot: 1,480 of 1,776 estimated embeddings
-
-Final index and evaluation evidence is still pending at the timestamp represented
-by this document.
+- Final ingestion: 1,776 of 1,776 vectors in 55 minutes 31.38 seconds
+- Best measured retrieval: BGE-M3 hybrid at 0.80 Hit@1, 0.95 Hit@3, 0.871 MRR

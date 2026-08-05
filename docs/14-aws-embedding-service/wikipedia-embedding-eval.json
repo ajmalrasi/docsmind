@@ -1,0 +1,1306 @@
+{
+  "measured_at": "2026-08-05T18:30:45.057832+00:00",
+  "corpus_version": "volkswagen-wikipedia-v1",
+  "label_status": "author_curated_source_titles",
+  "rank_depth": 5,
+  "models": [
+    {
+      "label": "bge-small baseline",
+      "provider": "local",
+      "model": "BAAI/bge-small-en-v1.5",
+      "dimension": 384,
+      "index_size": 1776,
+      "dense": {
+        "query_count": 20,
+        "hit@1": 0.75,
+        "hit@3": 0.85,
+        "mrr": 0.8242,
+        "latency_ms": {
+          "mean": 852.68,
+          "p50": 818.78,
+          "p95": 1151.77
+        },
+        "details": [
+          {
+            "id": "mqb_layout",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf"
+            ]
+          },
+          {
+            "id": "meb_meaning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen Group Scalable Systems Platform",
+              "List of Volkswagen Group platforms",
+              "List of Volkswagen Group platforms",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "ppe_developers",
+            "kind": "paraphrase",
+            "first_relevant_rank": 4,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "List of Volkswagen Group platforms",
+              "Audi",
+              "Porsche",
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group Scalable Systems Platform"
+            ]
+          },
+          {
+            "id": "ppe_first_car",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group Scalable Systems Platform",
+              "List of Volkswagen Group platforms",
+              "Škoda Auto"
+            ]
+          },
+          {
+            "id": "vr6_compact",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "VR6 engine"
+            ],
+            "top_titles": [
+              "VR6 engine",
+              "VR6 engine",
+              "VR6 engine",
+              "VR6 engine",
+              "List of Volkswagen Group petrol engines"
+            ]
+          },
+          {
+            "id": "tdi_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "TDI (engine)"
+            ],
+            "top_titles": [
+              "TDI (engine)",
+              "TDI (engine)",
+              "List of Volkswagen Group diesel engines",
+              "TDI (engine)",
+              "List of Volkswagen Group diesel engines"
+            ]
+          },
+          {
+            "id": "dsg_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Direct-shift gearbox"
+            ],
+            "top_titles": [
+              "Direct-shift gearbox",
+              "Direct-shift gearbox",
+              "Audi",
+              "Direct-shift gearbox",
+              "Direct-shift gearbox"
+            ]
+          },
+          {
+            "id": "fourmotion_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion"
+            ],
+            "top_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)",
+              "Volkswagen ID.4",
+              "Volkswagen",
+              "Quattro (four-wheel-drive system)"
+            ]
+          },
+          {
+            "id": "quattro_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)"
+            ],
+            "top_titles": [
+              "Quattro (four-wheel-drive system)",
+              "Audi",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)"
+            ]
+          },
+          {
+            "id": "emissions_defeat_device",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "TDI (engine)",
+              "Volkswagen emissions scandal"
+            ],
+            "top_titles": [
+              "Volkswagen",
+              "Volkswagen emissions scandal",
+              "Volkswagen emissions scandal",
+              "Volkswagen Group",
+              "Volkswagen Golf"
+            ]
+          },
+          {
+            "id": "id4_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen ID.4"
+            ],
+            "top_titles": [
+              "Volkswagen ID.4",
+              "Volkswagen Group MEB platform",
+              "Volkswagen ID.4",
+              "Volkswagen ID.4",
+              "List of Volkswagen Group platforms"
+            ]
+          },
+          {
+            "id": "enyaq_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Škoda Enyaq"
+            ],
+            "top_titles": [
+              "Škoda Enyaq",
+              "Volkswagen ID.4",
+              "Volkswagen ID.4",
+              "Škoda Enyaq",
+              "Volkswagen ID.4"
+            ]
+          },
+          {
+            "id": "born_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Cupra Born",
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Cupra Born",
+              "Cupra Born",
+              "SEAT León",
+              "Cupra Born",
+              "Cupra (marque)"
+            ]
+          },
+          {
+            "id": "golf_mk7_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf"
+            ]
+          },
+          {
+            "id": "traton_business",
+            "kind": "paraphrase",
+            "first_relevant_rank": 5,
+            "relevant_titles": [
+              "Traton"
+            ],
+            "top_titles": [
+              "Volkswagen Commercial Vehicles",
+              "Volkswagen Group",
+              "Volkswagen",
+              "Volkswagen Group",
+              "Traton"
+            ]
+          },
+          {
+            "id": "ducati_parent",
+            "kind": "paraphrase",
+            "first_relevant_rank": 3,
+            "relevant_titles": [
+              "Ducati",
+              "Lamborghini"
+            ],
+            "top_titles": [
+              "Volkswagen Group",
+              "Volkswagen",
+              "Ducati",
+              "Ducati",
+              "Volkswagen Group"
+            ]
+          },
+          {
+            "id": "id_buzz_type",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen ID. Buzz"
+            ],
+            "top_titles": [
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID.4",
+              "Volkswagen ID.3",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "phaeton_positioning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Phaeton"
+            ],
+            "top_titles": [
+              "Volkswagen Phaeton",
+              "Volkswagen",
+              "Volkswagen",
+              "Bentley",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "ea827_family",
+            "kind": "paraphrase",
+            "first_relevant_rank": 5,
+            "relevant_titles": [
+              "Volkswagen EA827 engine"
+            ],
+            "top_titles": [
+              "Audi",
+              "Volkswagen Commercial Vehicles",
+              "Audi A4",
+              "Volkswagen",
+              "Volkswagen EA827 engine"
+            ]
+          },
+          {
+            "id": "scalable_systems_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Scalable Systems Platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group Scalable Systems Platform",
+              "Volkswagen",
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "List of Volkswagen Group platforms"
+            ]
+          }
+        ]
+      },
+      "hybrid": {
+        "query_count": 20,
+        "hit@1": 0.75,
+        "hit@3": 0.9,
+        "mrr": 0.8475,
+        "latency_ms": {
+          "mean": 862.82,
+          "p50": 817.42,
+          "p95": 1164.56
+        },
+        "details": [
+          {
+            "id": "mqb_layout",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Jetta",
+              "Volkswagen Jetta"
+            ]
+          },
+          {
+            "id": "meb_meaning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen Group Scalable Systems Platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen",
+              "Volkswagen Group Premium Platform Electric"
+            ]
+          },
+          {
+            "id": "ppe_developers",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "List of Volkswagen Group platforms",
+              "Volkswagen Group Premium Platform Electric",
+              "Porsche",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group Scalable Systems Platform"
+            ]
+          },
+          {
+            "id": "ppe_first_car",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group MLB platform",
+              "List of Volkswagen Group platforms",
+              "Porsche",
+              "Volkswagen Group MEB platform"
+            ]
+          },
+          {
+            "id": "vr6_compact",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "VR6 engine"
+            ],
+            "top_titles": [
+              "VR6 engine",
+              "VR6 engine",
+              "List of Volkswagen Group petrol engines",
+              "Audi",
+              "VR6 engine"
+            ]
+          },
+          {
+            "id": "tdi_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "TDI (engine)"
+            ],
+            "top_titles": [
+              "TDI (engine)",
+              "TDI (engine)",
+              "List of Volkswagen Group diesel engines",
+              "List of Volkswagen Group diesel engines",
+              "Volkswagen emissions scandal"
+            ]
+          },
+          {
+            "id": "dsg_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Direct-shift gearbox"
+            ],
+            "top_titles": [
+              "Direct-shift gearbox",
+              "Direct-shift gearbox",
+              "Audi",
+              "Direct-shift gearbox",
+              "Direct-shift gearbox"
+            ]
+          },
+          {
+            "id": "fourmotion_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion"
+            ],
+            "top_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "quattro_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)"
+            ],
+            "top_titles": [
+              "Quattro (four-wheel-drive system)",
+              "4motion",
+              "Quattro (four-wheel-drive system)",
+              "Audi",
+              "Quattro (four-wheel-drive system)"
+            ]
+          },
+          {
+            "id": "emissions_defeat_device",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "TDI (engine)",
+              "Volkswagen emissions scandal"
+            ],
+            "top_titles": [
+              "Volkswagen",
+              "Volkswagen emissions scandal",
+              "Volkswagen Golf",
+              "Volkswagen emissions scandal",
+              "Volkswagen emissions scandal"
+            ]
+          },
+          {
+            "id": "id4_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen ID.4"
+            ],
+            "top_titles": [
+              "Volkswagen ID.4",
+              "Volkswagen Group MEB platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen ID.4",
+              "Volkswagen ID.4"
+            ]
+          },
+          {
+            "id": "enyaq_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Škoda Enyaq"
+            ],
+            "top_titles": [
+              "Škoda Enyaq",
+              "Škoda Enyaq",
+              "Volkswagen ID.4",
+              "Škoda Enyaq",
+              "Škoda Enyaq"
+            ]
+          },
+          {
+            "id": "born_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Cupra Born",
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Cupra Born",
+              "Cupra Born",
+              "Cupra (marque)",
+              "Cupra (marque)",
+              "Cupra (marque)"
+            ]
+          },
+          {
+            "id": "golf_mk7_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Jetta",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "traton_business",
+            "kind": "paraphrase",
+            "first_relevant_rank": 5,
+            "relevant_titles": [
+              "Traton"
+            ],
+            "top_titles": [
+              "Volkswagen Commercial Vehicles",
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "Traton"
+            ]
+          },
+          {
+            "id": "ducati_parent",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Ducati",
+              "Lamborghini"
+            ],
+            "top_titles": [
+              "Ducati",
+              "Volkswagen Group",
+              "Ducati",
+              "Volkswagen",
+              "Lamborghini"
+            ]
+          },
+          {
+            "id": "id_buzz_type",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen ID. Buzz"
+            ],
+            "top_titles": [
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID.4",
+              "Volkswagen ID. Buzz",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "phaeton_positioning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 4,
+            "relevant_titles": [
+              "Volkswagen Phaeton"
+            ],
+            "top_titles": [
+              "Volkswagen",
+              "Volkswagen",
+              "Volkswagen",
+              "Volkswagen Phaeton",
+              "List of Volkswagen vehicles"
+            ]
+          },
+          {
+            "id": "ea827_family",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "Volkswagen EA827 engine"
+            ],
+            "top_titles": [
+              "Audi",
+              "Volkswagen EA827 engine",
+              "Volkswagen",
+              "Volkswagen Beetle",
+              "Volkswagen EA827 engine"
+            ]
+          },
+          {
+            "id": "scalable_systems_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Scalable Systems Platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group Scalable Systems Platform",
+              "List of Volkswagen Group platforms",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group MEB platform"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "label": "BGE-M3 CPU TEI",
+      "provider": "tei",
+      "model": "BAAI/bge-m3",
+      "dimension": 1024,
+      "index_size": 1776,
+      "dense": {
+        "query_count": 20,
+        "hit@1": 0.7,
+        "hit@3": 0.9,
+        "mrr": 0.8142,
+        "latency_ms": {
+          "mean": 2673.47,
+          "p50": 2640.65,
+          "p95": 3386.59
+        },
+        "details": [
+          {
+            "id": "mqb_layout",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Quattro (four-wheel-drive system)",
+              "Volkswagen Group MQB platform",
+              "Volkswagen Group MLB platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Golf Mk7"
+            ]
+          },
+          {
+            "id": "meb_meaning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group MEB platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Group Scalable Systems Platform",
+              "Volkswagen",
+              "Volkswagen Golf Mk7"
+            ]
+          },
+          {
+            "id": "ppe_developers",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "Volkswagen Group Premium Platform Electric",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group MSB platform"
+            ]
+          },
+          {
+            "id": "ppe_first_car",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group Premium Platform Electric"
+            ]
+          },
+          {
+            "id": "vr6_compact",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "VR6 engine"
+            ],
+            "top_titles": [
+              "VR6 engine",
+              "VR6 engine",
+              "List of Volkswagen Group petrol engines",
+              "VR6 engine",
+              "VR6 engine"
+            ]
+          },
+          {
+            "id": "tdi_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "TDI (engine)"
+            ],
+            "top_titles": [
+              "TDI (engine)",
+              "TDI (engine)",
+              "List of Volkswagen Group diesel engines",
+              "TDI (engine)",
+              "TDI (engine)"
+            ]
+          },
+          {
+            "id": "dsg_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Direct-shift gearbox"
+            ],
+            "top_titles": [
+              "Direct-shift gearbox",
+              "Audi",
+              "Direct-shift gearbox",
+              "Direct-shift gearbox",
+              "Direct-shift gearbox"
+            ]
+          },
+          {
+            "id": "fourmotion_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion"
+            ],
+            "top_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)",
+              "Volkswagen",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "quattro_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)"
+            ],
+            "top_titles": [
+              "Quattro (four-wheel-drive system)",
+              "4motion",
+              "Quattro (four-wheel-drive system)",
+              "Audi",
+              "Audi"
+            ]
+          },
+          {
+            "id": "emissions_defeat_device",
+            "kind": "paraphrase",
+            "first_relevant_rank": 3,
+            "relevant_titles": [
+              "TDI (engine)",
+              "Volkswagen emissions scandal"
+            ],
+            "top_titles": [
+              "Volkswagen Golf",
+              "Volkswagen",
+              "Volkswagen emissions scandal",
+              "Volkswagen Group",
+              "Volkswagen emissions scandal"
+            ]
+          },
+          {
+            "id": "id4_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen ID.4"
+            ],
+            "top_titles": [
+              "Volkswagen ID.4",
+              "Volkswagen ID.4",
+              "Volkswagen Group MEB platform",
+              "Volkswagen ID.4",
+              "Volkswagen ID.4"
+            ]
+          },
+          {
+            "id": "enyaq_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Škoda Enyaq"
+            ],
+            "top_titles": [
+              "Škoda Enyaq",
+              "Škoda Enyaq",
+              "Škoda Enyaq",
+              "Škoda Enyaq",
+              "Škoda Enyaq"
+            ]
+          },
+          {
+            "id": "born_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Cupra Born",
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Cupra Born",
+              "Cupra Born",
+              "Cupra Born",
+              "Cupra Born",
+              "Cupra Born"
+            ]
+          },
+          {
+            "id": "golf_mk7_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Golf",
+              "Volkswagen Golf Mk7",
+              "Volkswagen Touareg",
+              "Volkswagen Golf",
+              "Volkswagen Golf Mk7"
+            ]
+          },
+          {
+            "id": "traton_business",
+            "kind": "paraphrase",
+            "first_relevant_rank": 4,
+            "relevant_titles": [
+              "Traton"
+            ],
+            "top_titles": [
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "Volkswagen Commercial Vehicles",
+              "Traton",
+              "Traton"
+            ]
+          },
+          {
+            "id": "ducati_parent",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "Ducati",
+              "Lamborghini"
+            ],
+            "top_titles": [
+              "Volkswagen Group",
+              "Ducati",
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "id_buzz_type",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen ID. Buzz"
+            ],
+            "top_titles": [
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID.4",
+              "Volkswagen ID.3"
+            ]
+          },
+          {
+            "id": "phaeton_positioning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Phaeton"
+            ],
+            "top_titles": [
+              "Volkswagen Phaeton",
+              "List of Volkswagen vehicles",
+              "Volkswagen",
+              "List of Volkswagen vehicles",
+              "List of Volkswagen vehicles"
+            ]
+          },
+          {
+            "id": "ea827_family",
+            "kind": "paraphrase",
+            "first_relevant_rank": 5,
+            "relevant_titles": [
+              "Volkswagen EA827 engine"
+            ],
+            "top_titles": [
+              "List of Volkswagen vehicles",
+              "Audi",
+              "Volkswagen Beetle",
+              "List of Volkswagen Group petrol engines",
+              "Volkswagen EA827 engine"
+            ]
+          },
+          {
+            "id": "scalable_systems_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Scalable Systems Platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group Scalable Systems Platform",
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "Volkswagen Group MLB platform",
+              "List of Volkswagen Group platforms"
+            ]
+          }
+        ]
+      },
+      "hybrid": {
+        "query_count": 20,
+        "hit@1": 0.8,
+        "hit@3": 0.95,
+        "mrr": 0.8708,
+        "latency_ms": {
+          "mean": 4069.03,
+          "p50": 3979.51,
+          "p95": 4726.35
+        },
+        "details": [
+          {
+            "id": "mqb_layout",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group MQB platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Golf Mk7",
+              "Quattro (four-wheel-drive system)",
+              "Volkswagen Group MLB platform"
+            ]
+          },
+          {
+            "id": "meb_meaning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen Group Scalable Systems Platform",
+              "Volkswagen Group Premium Platform Electric",
+              "List of Volkswagen Group platforms",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "ppe_developers",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "Volkswagen Group Premium Platform Electric",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Group MLB platform",
+              "Porsche",
+              "Volkswagen Group MLB platform"
+            ]
+          },
+          {
+            "id": "ppe_first_car",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Premium Platform Electric"
+            ],
+            "top_titles": [
+              "Volkswagen Group Premium Platform Electric",
+              "Volkswagen Group MLB platform",
+              "Volkswagen Group Premium Platform Electric",
+              "List of Volkswagen Group platforms",
+              "Porsche"
+            ]
+          },
+          {
+            "id": "vr6_compact",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "VR6 engine"
+            ],
+            "top_titles": [
+              "VR6 engine",
+              "VR6 engine",
+              "List of Volkswagen Group petrol engines",
+              "VR6 engine",
+              "VR6 engine"
+            ]
+          },
+          {
+            "id": "tdi_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "TDI (engine)"
+            ],
+            "top_titles": [
+              "TDI (engine)",
+              "TDI (engine)",
+              "List of Volkswagen Group diesel engines",
+              "List of Volkswagen Group diesel engines",
+              "List of Volkswagen Group diesel engines"
+            ]
+          },
+          {
+            "id": "dsg_definition",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Direct-shift gearbox"
+            ],
+            "top_titles": [
+              "Direct-shift gearbox",
+              "Audi",
+              "Direct-shift gearbox",
+              "Direct-shift gearbox",
+              "Direct-shift gearbox"
+            ]
+          },
+          {
+            "id": "fourmotion_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion"
+            ],
+            "top_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)",
+              "Volkswagen",
+              "Quattro (four-wheel-drive system)"
+            ]
+          },
+          {
+            "id": "quattro_brand",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "4motion",
+              "Quattro (four-wheel-drive system)"
+            ],
+            "top_titles": [
+              "4motion",
+              "Audi",
+              "Quattro (four-wheel-drive system)",
+              "Quattro (four-wheel-drive system)",
+              "Audi"
+            ]
+          },
+          {
+            "id": "emissions_defeat_device",
+            "kind": "paraphrase",
+            "first_relevant_rank": 3,
+            "relevant_titles": [
+              "TDI (engine)",
+              "Volkswagen emissions scandal"
+            ],
+            "top_titles": [
+              "Volkswagen Golf",
+              "Volkswagen",
+              "Volkswagen emissions scandal",
+              "Volkswagen emissions scandal",
+              "Volkswagen emissions scandal"
+            ]
+          },
+          {
+            "id": "id4_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Volkswagen ID.4"
+            ],
+            "top_titles": [
+              "Volkswagen ID.4",
+              "Volkswagen Group MEB platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen ID.4",
+              "Volkswagen ID.4"
+            ]
+          },
+          {
+            "id": "enyaq_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group MEB platform",
+              "Škoda Enyaq"
+            ],
+            "top_titles": [
+              "Škoda Enyaq",
+              "Volkswagen Group MEB platform",
+              "Škoda Enyaq",
+              "Škoda Enyaq",
+              "Škoda Enyaq"
+            ]
+          },
+          {
+            "id": "born_platform",
+            "kind": "exact",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Cupra Born",
+              "Volkswagen Group MEB platform"
+            ],
+            "top_titles": [
+              "Cupra Born",
+              "Cupra Born",
+              "Cupra Born",
+              "Cupra (marque)",
+              "Cupra (marque)"
+            ]
+          },
+          {
+            "id": "golf_mk7_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Group MQB platform"
+            ],
+            "top_titles": [
+              "Volkswagen Golf Mk7",
+              "Volkswagen Golf",
+              "Volkswagen Jetta",
+              "Volkswagen Golf Mk7",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "traton_business",
+            "kind": "paraphrase",
+            "first_relevant_rank": 4,
+            "relevant_titles": [
+              "Traton"
+            ],
+            "top_titles": [
+              "Volkswagen Group",
+              "Volkswagen Group",
+              "Volkswagen Commercial Vehicles",
+              "Traton",
+              "Traton"
+            ]
+          },
+          {
+            "id": "ducati_parent",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Ducati",
+              "Lamborghini"
+            ],
+            "top_titles": [
+              "Ducati",
+              "Volkswagen Group",
+              "Ducati",
+              "Volkswagen Group",
+              "Lamborghini"
+            ]
+          },
+          {
+            "id": "id_buzz_type",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen ID. Buzz"
+            ],
+            "top_titles": [
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID. Buzz",
+              "Volkswagen ID.4",
+              "Volkswagen ID.3",
+              "Volkswagen"
+            ]
+          },
+          {
+            "id": "phaeton_positioning",
+            "kind": "paraphrase",
+            "first_relevant_rank": 3,
+            "relevant_titles": [
+              "Volkswagen Phaeton"
+            ],
+            "top_titles": [
+              "Volkswagen",
+              "Volkswagen Touareg",
+              "Volkswagen Phaeton",
+              "List of Volkswagen Group platforms",
+              "List of Volkswagen vehicles"
+            ]
+          },
+          {
+            "id": "ea827_family",
+            "kind": "paraphrase",
+            "first_relevant_rank": 2,
+            "relevant_titles": [
+              "Volkswagen EA827 engine"
+            ],
+            "top_titles": [
+              "Audi",
+              "Volkswagen EA827 engine",
+              "Volkswagen Beetle",
+              "Volkswagen",
+              "Quattro (four-wheel-drive system)"
+            ]
+          },
+          {
+            "id": "scalable_systems_platform",
+            "kind": "paraphrase",
+            "first_relevant_rank": 1,
+            "relevant_titles": [
+              "Volkswagen Group Scalable Systems Platform"
+            ],
+            "top_titles": [
+              "Volkswagen Group Scalable Systems Platform",
+              "Volkswagen Group MLB platform",
+              "List of Volkswagen Group platforms",
+              "Volkswagen Group MEB platform",
+              "Volkswagen Group"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
