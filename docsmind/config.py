@@ -7,7 +7,9 @@ object so the system is reconfigurable without touching code.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,9 +21,11 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Generation. Provider selects "cloud" (Anthropic), "local" (Ollama), or
-    # "vllm" (self-hosted OpenAI-compatible API). This is the router seam.
-    llm_provider: str = "cloud"
+    # Generation. "router" tries llm_primary_provider and falls back only when
+    # that provider has a transient availability failure.
+    llm_provider: Literal["cloud", "local", "vllm", "router"] = "cloud"
+    llm_primary_provider: Literal["cloud", "local", "vllm"] = "vllm"
+    llm_fallback_provider: Literal["cloud", "local", "vllm"] = "cloud"
 
     # Cloud LLM. The Anthropic SDK reads ANTHROPIC_API_KEY itself, so the key is
     # never stored on this object.
@@ -31,10 +35,13 @@ class Settings(BaseSettings):
     local_llm_model: str = "deepseek-coder-v2:16b-lite-instruct-q4_K_M"
     ollama_base_url: str = "http://localhost:11434"
 
-    # vLLM. The beast serves an INT4-AWQ Qwen3-4B checkpoint under the stable
-    # model alias "openclaw" using vLLM's OpenAI-compatible endpoint.
+    # vLLM. The concrete checkpoint and host can change independently while the
+    # application keeps the stable model alias "openclaw".
     vllm_model: str = "openclaw"
     vllm_base_url: str = "http://localhost:11434/v1"
+    # Kept as SecretStr so settings/log representations cannot reveal it.
+    vllm_api_key: SecretStr | None = None
+    vllm_timeout_seconds: float = 300.0
 
     max_tokens: int = 1024
 
@@ -44,18 +51,30 @@ class Settings(BaseSettings):
     # dedicated to vLLM, set this to "cpu" so retrieval and generation coexist.
     embed_device: str = ""
 
-    # Vector store backend. "faiss" (in-process, file-persisted) is the default;
-    # "qdrant" (Phase 2b) runs the same VectorStore contract against a Qdrant
-    # collection — local-path persisted by default, or a server when qdrant_url
-    # is set. The retrieval code never sees the difference.
+    # Vector store backend. "faiss" is in-process, "qdrant" is local or
+    # self-hosted, and "opensearch" uses AWS OpenSearch Serverless. All three
+    # implement the same VectorStore contract.
     vector_backend: str = "faiss"
 
     # Qdrant (Phase 2b). When qdrant_url is empty, Qdrant persists to a local
     # path under index_dir (no server needed); set it to e.g.
-    # "http://localhost:6333" to use a Dockerized server on beast.
+    # "http://localhost:6333" to use a Dockerized server on the Droplet.
     qdrant_url: str = ""
     qdrant_collection: str = "docsmind"
     qdrant_hnsw_m: int = 16  # Qdrant's built-in HNSW graph: edges per node
+
+    # AWS OpenSearch Serverless. Credentials are resolved by boto3; no access
+    # key is stored in Settings. On DigitalOcean, aws_profile selects the
+    # restricted [docsmind] profile installed under ~/.aws.
+    opensearch_endpoint: str = ""
+    opensearch_index: str = "docsmind-chunks"
+    aws_region: str = "us-east-1"
+    aws_profile: str = "docsmind"
+    opensearch_bulk_size: int = 500
+    opensearch_page_size: int = 1000
+    # Serverless can cold-start beyond the client's 10-second default.
+    opensearch_request_timeout: int = 60
+    opensearch_max_retries: int = 5
 
     # Vector index type (FAISS only). "flat" (exact) is the default and the right
     # choice for a small corpus. Phase 2 adds the approximate types: "ivf",
@@ -100,7 +119,8 @@ class Settings(BaseSettings):
     fusion_k: int = 60
 
     # Cross-encoder reranker (Phase 3). Off by default: it downloads a model and
-    # is best run on the beast GPU. Turn on with DOCSMIND_RERANK_ENABLED=true.
+    # is best run on a GPU Droplet. Turn on with
+    # DOCSMIND_RERANK_ENABLED=true.
     rerank_enabled: bool = False
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 

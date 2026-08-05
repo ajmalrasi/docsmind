@@ -1,11 +1,12 @@
-# DocsMind — local dev + remote (beast) execution
+# DocsMind — local development + DigitalOcean execution
 #
-# The git repo lives here (Mac); heavy work runs on `beast` (RTX 3070 Ti, Ollama,
-# Docker). `make sync` mirrors the working tree to beast; the beast-* targets run
+# The git repo lives on the development machine. Remote workloads run on a
+# DigitalOcean Droplet; GPU-dependent targets require a GPU Droplet. `make sync`
+# mirrors the working tree to that Droplet, and the digitalocean-* targets run
 # commands there over SSH.
 
-BEAST       ?= ajmalrasi@192.168.3.226
-BEAST_DIR   ?= ~/projects/docsmind
+DIGITALOCEAN_HOST ?=
+DIGITALOCEAN_DIR  ?= /home/docsmind/app
 PY          ?= python
 VENV        ?= .venv
 WHATSAPP_ZIP ?=
@@ -26,7 +27,7 @@ install: ## Create a venv and install the package (dev extras)
 	$(VENV)/bin/pip install -e ".[dev]"
 
 .PHONY: ingest
-ingest: ## Build the FAISS index from data/sample_docs
+ingest: ## Build the configured vector index
 	$(VENV)/bin/python -m scripts.ingest
 
 .PHONY: prepare-whatsapp
@@ -45,6 +46,18 @@ serve: ## Run the FastAPI server on :8000
 demo: ## Ingest if needed, then run a sample query with citations
 	$(VENV)/bin/python -m scripts.demo
 
+.PHONY: vllm-smoke
+vllm-smoke: ## Test the configured authenticated vLLM endpoint (no corpus needed)
+	$(VENV)/bin/python -m scripts.vllm_smoke $(ARGS)
+
+.PHONY: vllm-demo
+vllm-demo: ## Run the full RAG pipeline with vLLM primary + cloud fallback
+	DOCSMIND_LLM_PROVIDER=router $(VENV)/bin/python -m scripts.demo $(ARGS)
+
+.PHONY: vllm-benchmark
+vllm-benchmark: ## Measure vLLM TTFT, latency, and throughput (corpus-independent)
+	$(VENV)/bin/python -m scripts.vllm_benchmark $(ARGS)
+
 .PHONY: test
 test: ## Run the offline test suite
 	$(VENV)/bin/pytest
@@ -61,35 +74,44 @@ eval: ## Retrieval eval: dense vs hybrid (add ARGS=--rerank for the cross-encode
 notebook: ## Open the visual pipeline walkthrough in JupyterLab
 	$(VENV)/bin/jupyter lab notebooks/docsmind_pipeline_walkthrough.ipynb
 
-# ---------- beast (remote) ----------
+# ---------- DigitalOcean (remote) ----------
+
+.PHONY: check-digitalocean
+check-digitalocean:
+	@test -n "$(DIGITALOCEAN_HOST)" || \
+		(echo "Set DIGITALOCEAN_HOST=user@droplet-ip" && exit 1)
 
 .PHONY: sync
-sync: ## rsync the working tree to beast (excludes venv, index, .git)
+sync: check-digitalocean ## Sync the working tree to DigitalOcean
 	rsync -az --delete \
 		--exclude '.git' --exclude '.venv' --exclude '__pycache__' \
 		--exclude 'data/index' --exclude '*.egg-info' \
-		./ $(BEAST):$(BEAST_DIR)/
+		./ $(DIGITALOCEAN_HOST):$(DIGITALOCEAN_DIR)/
 
-.PHONY: beast-install
-beast-install: sync ## Install the package on beast
-	ssh $(BEAST) "cd $(BEAST_DIR) && python3 -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e '.[dev]'"
+.PHONY: digitalocean-install
+digitalocean-install: sync ## Install the package on DigitalOcean
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && python3 -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e '.[dev]'"
 
-.PHONY: beast-ingest
-beast-ingest: sync ## Build the index on beast
-	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/python -m scripts.ingest"
+.PHONY: digitalocean-ingest
+digitalocean-ingest: sync ## Build the index on DigitalOcean
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && .venv/bin/python -m scripts.ingest"
 
-.PHONY: beast-demo
-beast-demo: sync ## Run the demo on beast (uses its GPU for embeddings)
-	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/python -m scripts.demo"
+.PHONY: digitalocean-opensearch-smoke
+digitalocean-opensearch-smoke: sync ## Run the OpenSearch smoke check from DigitalOcean
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && .venv/bin/python -m scripts.opensearch_smoke $(ARGS)"
 
-.PHONY: beast-test
-beast-test: sync ## Run tests on beast
-	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/pytest"
+.PHONY: digitalocean-demo
+digitalocean-demo: sync ## Run the demo on DigitalOcean
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && .venv/bin/python -m scripts.demo"
 
-.PHONY: beast-serve
-beast-serve: sync ## Serve from beast on :8000 (reachable on the LAN)
-	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/uvicorn docsmind.serving.app:app --host 0.0.0.0 --port 8000"
+.PHONY: digitalocean-test
+digitalocean-test: sync ## Run tests on DigitalOcean
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && .venv/bin/pytest"
 
-.PHONY: beast-eval
-beast-eval: sync ## Run the retrieval eval on beast with the reranker (GPU)
-	ssh $(BEAST) "cd $(BEAST_DIR) && .venv/bin/python -m scripts.retrieval_eval --rerank"
+.PHONY: digitalocean-serve
+digitalocean-serve: sync ## Serve from the DigitalOcean Droplet on :8000
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && .venv/bin/uvicorn docsmind.serving.app:app --host 0.0.0.0 --port 8000"
+
+.PHONY: digitalocean-eval
+digitalocean-eval: sync ## Run reranker evaluation on a DigitalOcean GPU Droplet
+	ssh $(DIGITALOCEAN_HOST) "cd $(DIGITALOCEAN_DIR) && .venv/bin/python -m scripts.retrieval_eval --rerank"

@@ -1,8 +1,8 @@
 """The pluggable VectorStore interface.
 
-Every backend (FAISS in Phase 1; Qdrant in Phase 2b) implements this contract so
-retrieval code is backend-agnostic. The hybrid retriever (Phase 3) also reads the
-stored ``chunks`` to build its in-memory BM25 index, so that is part of the
+Every backend (FAISS, Qdrant, and AWS OpenSearch Serverless) implements this
+contract so retrieval code is backend-agnostic. The hybrid retriever also reads
+the stored ``chunks`` to build its in-memory BM25 index, so that is part of the
 contract too.
 """
 

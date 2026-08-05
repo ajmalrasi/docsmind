@@ -1,0 +1,145 @@
+{
+  "corpus_version": "briskoda-superb-mk3-v1",
+  "label_status": "starter_source_posts_not_final_answer_labels",
+  "description": "Provisional post-level labels for comparing embedding models. Each label points to the source post that clearly states the problem. Human review must add or replace labels with posts containing verified answers before production model selection.",
+  "queries": [
+    {
+      "id": "kessy_start_button",
+      "question": "How can I repair a Superb Mk3 KESSY ignition button that needs several hard presses to start?",
+      "relevant_post_ids": ["5308556"],
+      "topic_id": "472970"
+    },
+    {
+      "id": "dpf_pressure_sensor",
+      "question": "After replacing a melted DPF differential pressure sensor, does it need adaptation in OBD11?",
+      "relevant_post_ids": ["5919955"],
+      "topic_id": "530250"
+    },
+    {
+      "id": "frequent_dpf_regen",
+      "question": "Why is my 2016 Superb regenerating its DPF every 60 km after many short trips?",
+      "relevant_post_ids": ["5872374"],
+      "topic_id": "525506"
+    },
+    {
+      "id": "adblue_limp_mode",
+      "question": "What could cause a 2019 Superb diesel to show an engine light and stay permanently in limp mode with an AdBlue problem?",
+      "relevant_post_ids": ["5983756"],
+      "topic_id": "536579"
+    },
+    {
+      "id": "electric_tailgate_partial_open",
+      "question": "Why does my electric tailgate open only 15 cm per button press and refuse to close from its button?",
+      "relevant_post_ids": ["5921842"],
+      "topic_id": "530420"
+    },
+    {
+      "id": "replacement_battery_coding",
+      "question": "Do I need to code a replacement battery on a Superb Mk3, and can I do it myself?",
+      "relevant_post_ids": ["5902129"],
+      "topic_id": "528497"
+    },
+    {
+      "id": "battery_parasitic_drain",
+      "question": "How do I diagnose a parasitic battery drain when my 2018 Superb dies after sitting for a day or two?",
+      "relevant_post_ids": ["5624602"],
+      "topic_id": "501170"
+    },
+    {
+      "id": "acc_vertical_alignment",
+      "question": "What does ACC unavailable with diagnostic code 00791 vertical alignment mean on a Superb Mk3 facelift?",
+      "relevant_post_ids": ["5992978"],
+      "topic_id": "537510"
+    },
+    {
+      "id": "carplay_usb_no_power",
+      "question": "My 2019 Superb USB port has no power and wired CarPlay stopped working; which component or fuse should I check?",
+      "relevant_post_ids": ["5843157"],
+      "topic_id": "522702"
+    },
+    {
+      "id": "coolant_type_emergency",
+      "question": "Can orange coolant containing ethanediol be mixed with the pink coolant in a Superb for an emergency top-up?",
+      "relevant_post_ids": ["5936338"],
+      "topic_id": "531827"
+    },
+    {
+      "id": "unexplained_coolant_loss",
+      "question": "What should I investigate when a 2020 2.0 TDI repeatedly loses coolant but passes a pressure test?",
+      "relevant_post_ids": ["5917373"],
+      "topic_id": "529986"
+    },
+    {
+      "id": "auxiliary_water_pump_location",
+      "question": "Where is the type C auxiliary water pump on a 2023 2.0 TDI after P26F7, P26F8 and P26FA faults?",
+      "relevant_post_ids": ["6009910"],
+      "topic_id": "539195"
+    },
+    {
+      "id": "new_steering_wheel_retrofit",
+      "question": "Can the newer-style steering wheel be retrofitted to a 2020 Superb Mk3, and what coding or hub changes are required?",
+      "relevant_post_ids": ["5680898"],
+      "topic_id": "505955"
+    },
+    {
+      "id": "door_contact_auto_hold_epb",
+      "question": "Why do driver-door contact, Auto Hold and electronic parking brake errors appear together?",
+      "relevant_post_ids": ["5308647"],
+      "topic_id": "472973"
+    },
+    {
+      "id": "wheel_bearing_noise_constant",
+      "question": "What can sound like a wheel bearing at low speed when the noise does not change while turning and shifting load?",
+      "relevant_post_ids": ["5754651"],
+      "topic_id": "513139"
+    },
+    {
+      "id": "aircon_refrigerant_2016",
+      "question": "Does a 2016 Superb use R134a or R1234yf refrigerant for an air-conditioning recharge?",
+      "relevant_post_ids": ["5782550"],
+      "topic_id": "516116"
+    },
+    {
+      "id": "creaking_front_suspension",
+      "question": "Where and how should grease be applied to stop the front suspension wishbone bushes creaking?",
+      "relevant_post_ids": ["5471041"],
+      "topic_id": "487276"
+    },
+    {
+      "id": "sunroof_creak_fix",
+      "question": "How can persistent panoramic sunroof creaks and rattles in the Superb be fixed?",
+      "relevant_post_ids": ["5034440"],
+      "topic_id": "447707"
+    },
+    {
+      "id": "tdi_oil_consumption",
+      "question": "Is using roughly one litre of oil every 6,000 km within the official limit for a 200 PS Superb TDI?",
+      "relevant_post_ids": ["5862169"],
+      "topic_id": "524536"
+    },
+    {
+      "id": "cold_injector_deviation",
+      "question": "Why do EA288 injectors show high fuel deviation and vibration in Drive when cold but normal values in Park?",
+      "relevant_post_ids": ["5898533"],
+      "topic_id": "528159"
+    },
+    {
+      "id": "egr_p0401_after_regen",
+      "question": "What should I check after a motorway regeneration attempt produces a flashing glow-plug light and P0401 EGR insufficient flow?",
+      "relevant_post_ids": ["6002571"],
+      "topic_id": "538458"
+    },
+    {
+      "id": "key_fob_low_battery_warning",
+      "question": "Does the virtual cockpit show a low key-fob battery warning before the remote battery dies?",
+      "relevant_post_ids": ["5995429"],
+      "topic_id": "537778"
+    },
+    {
+      "id": "reverse_camera_four_images",
+      "question": "Why does the factory reversing camera intermittently show four black-and-white images?",
+      "relevant_post_ids": ["5957616"],
+      "topic_id": "533973"
+    }
+  ]
+}

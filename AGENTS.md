@@ -15,7 +15,7 @@ This shapes how work should be framed: prioritize learning over shortcuts, expla
 - LlamaIndex for ingestion, LangGraph for the agent
 - FAISS (flat→IVF/HNSW/PQ) + Qdrant behind one `VectorStore` interface
 - Retrieval: dense + BM25 + rerank (RRF fusion)
-- Cloud LLM = Anthropic Claude (default `claude-opus-4-8`, configurable)
+- Cloud LLM = Anthropic Codex (default `Codex-opus-4-8`, configurable)
 
 ## Phase status
 

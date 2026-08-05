@@ -12,6 +12,8 @@ dependencies = [
     # Vector store
     "faiss-cpu>=1.8",
     "qdrant-client>=1.10",  # Phase 2b: Qdrant backend (local-path or server)
+    "boto3>=1.35",  # AWS credential chain + SigV4 credentials
+    "opensearch-py>=3.0",  # AWS OpenSearch Serverless client
     "numpy>=1.26",
     # Hybrid retrieval (Phase 3): BM25 sparse retrieval; the cross-encoder
     # reranker reuses sentence-transformers (already a dependency above).
@@ -35,6 +37,9 @@ dev = [
 notebook = [
     "jupyterlab>=4.0",
     "ipykernel>=6.0",
+]
+crawl = [
+    "playwright>=1.49",
 ]
 
 [tool.setuptools.packages.find]

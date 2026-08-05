@@ -1,1 +1,1 @@
-"""LLM layer: a single client interface, cloud-backed in Phase 1."""
+"""LLM clients and corpus-independent routing for the Generate stage."""

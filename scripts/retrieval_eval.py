@@ -8,7 +8,8 @@ Configs compared:
     dense          Phase 1 — embeddings only
     hybrid         Phase 3 — dense + BM25, fused with RRF (no reranker)
     hybrid+rerank  Phase 3 — same, then a cross-encoder reorders the top
-                   candidates (needs the model; pass --rerank, best on beast)
+                   candidates (needs the model; pass --rerank, best on a
+                   DigitalOcean GPU Droplet)
 
 Metrics (source-level relevance — did we retrieve a chunk from the right doc?):
     Hit@1   fraction of queries whose #1 result is from the correct doc

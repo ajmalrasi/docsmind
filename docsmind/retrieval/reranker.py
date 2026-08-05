@@ -15,8 +15,9 @@ The key distinction to hold onto:
                                     once per candidate at query time — so you only
                                     ever apply it to the top ~20, never the corpus.
 
-That cost is why this is gated behind ``rerank_enabled`` and meant for the beast
-GPU. The model is loaded lazily so importing this module stays cheap.
+That cost is why this is gated behind ``rerank_enabled`` and meant for a
+DigitalOcean GPU Droplet. The model is loaded lazily so importing this module
+stays cheap.
 """
 
 from __future__ import annotations
