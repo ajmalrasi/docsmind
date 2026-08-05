@@ -19,6 +19,10 @@ from docsmind.ingestion.whatsapp import (
     WHATSAPP_JSONL_SUFFIX,
     load_whatsapp_documents,
 )
+from docsmind.ingestion.wikipedia import (
+    WIKIPEDIA_JSONL_SUFFIX,
+    load_wikipedia_documents,
+)
 
 # Technical/ML documentation file types we care about.
 SUPPORTED_EXTS = [".md", ".txt", ".rst", ".py"]
@@ -42,6 +46,7 @@ def load_documents(
     )
     whatsapp_files = sorted(data_dir.rglob(f"*{WHATSAPP_JSONL_SUFFIX}"))
     briskoda_files = sorted(data_dir.rglob(f"*{BRISKODA_JSONL_SUFFIX}"))
+    wikipedia_files = sorted(data_dir.rglob(f"*{WIKIPEDIA_JSONL_SUFFIX}"))
 
     documents: list[Document] = []
     if regular_files:
@@ -59,6 +64,9 @@ def load_documents(
 
     for path in briskoda_files:
         documents.extend(load_briskoda_documents(path))
+
+    for path in wikipedia_files:
+        documents.extend(load_wikipedia_documents(path))
 
     if not documents:
         raise ValueError(f"No supported documents found under: {data_dir}")

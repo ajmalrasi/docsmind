@@ -1,0 +1,65 @@
+{
+  "base_url": "http://localhost:8080",
+  "client_platform": "macOS-26.5.1-arm64-arm-64bit",
+  "embedding_dimension": 1024,
+  "health_status": 200,
+  "measured_at": "2026-08-05T14:44:30.203788+00:00",
+  "model": "BAAI/bge-m3",
+  "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "results": [
+    {
+      "batch_size": 1,
+      "latency_ms": {
+        "mean": 420.96,
+        "p50": 420.26,
+        "p95": 424.42
+      },
+      "max_normalization_error": 0.0,
+      "repeats": 10,
+      "throughput_texts_per_second": 2.38
+    },
+    {
+      "batch_size": 4,
+      "latency_ms": {
+        "mean": 830.34,
+        "p50": 813.57,
+        "p95": 999.27
+      },
+      "max_normalization_error": 0.0,
+      "repeats": 10,
+      "throughput_texts_per_second": 4.82
+    },
+    {
+      "batch_size": 8,
+      "latency_ms": {
+        "mean": 1353.23,
+        "p50": 1341.58,
+        "p95": 1432.38
+      },
+      "max_normalization_error": 0.0,
+      "repeats": 10,
+      "throughput_texts_per_second": 5.91
+    }
+  ],
+  "server_info": {
+    "auto_truncate": true,
+    "docker_label": "sha-0667015",
+    "max_batch_requests": 8,
+    "max_batch_tokens": 2048,
+    "max_client_batch_size": 8,
+    "max_concurrent_requests": 8,
+    "max_input_length": 2048,
+    "model_dtype": "float32",
+    "model_id": "BAAI/bge-m3",
+    "model_sha": "5617a9f61b028005a4858fdac845db406aefb181",
+    "model_type": {
+      "embedding": {
+        "pooling": "cls"
+      }
+    },
+    "served_model_name": "BAAI/bge-m3",
+    "sha": "06670157fb6c1523482219bdb2d1660277d38088",
+    "tokenization_workers": 1,
+    "version": "1.9.3"
+  }
+}

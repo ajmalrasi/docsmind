@@ -34,8 +34,10 @@ def chunk_documents(
             )
             text = header + text
         source = (
-            node.metadata.get("file_name")
+            node.metadata.get("source_url")
+            or node.metadata.get("file_name")
             or node.metadata.get("file_path")
+            or node.metadata.get("title")
             or "unknown"
         )
         chunks.append(

@@ -7,12 +7,14 @@ dependencies = [
     # Ingestion / indexing
     "llama-index-core>=0.11",
     "llama-index-readers-file>=0.2",
-    # Embeddings (self-hosted SLM-style, runs on CPU or the RTX 3070 Ti)
+    "beautifulsoup4>=4.12",  # Wikipedia HTML normalization
+    # Embeddings: local baseline, remote TEI service, or AWS Bedrock provider.
     "sentence-transformers>=3.0",
     # Vector store
     "faiss-cpu>=1.8",
     "qdrant-client>=1.10",  # Phase 2b: Qdrant backend (local-path or server)
     "boto3>=1.35",  # AWS credential chain + SigV4 credentials
+    "awscrt>=0.23",  # Required by boto3 for AWS CLI login-session profiles
     "opensearch-py>=3.0",  # AWS OpenSearch Serverless client
     "numpy>=1.26",
     # Hybrid retrieval (Phase 3): BM25 sparse retrieval; the cross-encoder

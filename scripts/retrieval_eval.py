@@ -115,7 +115,7 @@ def main() -> None:
         chunk_overlap=settings.chunk_overlap,
     )
     embedder = build_embedder(settings)
-    embeddings = embedder.encode([c.text for c in chunks])
+    embeddings = embedder.embed_documents([c.text for c in chunks])
     store = FaissVectorStore(dim=embedder.dim, index_type="flat")
     store.add(chunks, embeddings)
     # How many chunks each doc produced = size of its relevant set (for Recall/NDCG).

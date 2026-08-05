@@ -1,0 +1,309 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: DocsMind CPU embedding service on ECS with one EC2 capacity provider.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+  InstanceType:
+    Type: String
+    Default: m7i.large
+  DesiredCapacity:
+    Type: Number
+    Default: 1
+    AllowedValues: [0, 1]
+  EcsAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
+  TeiImage:
+    Type: String
+    Default: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.3
+  EmbeddingModel:
+    Type: String
+    Default: BAAI/bge-m3
+  EmbeddingModelRevision:
+    Type: String
+    Default: 5617a9f61b028005a4858fdac845db406aefb181
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: docsmind-embedding-dev
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Environment
+          Value: development
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/docsmind-embedding-dev
+      RetentionInDays: 7
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  ContainerInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-embedding-ecs-instance
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  ContainerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: docsmind-embedding-ecs-instance
+      Roles:
+        - !Ref ContainerInstanceRole
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: docsmind-embedding-task-execution
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: No-ingress security group for the DocsMind embedding host
+      VpcId: !Ref VpcId
+      SecurityGroupIngress: []
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: docsmind-embedding-dev
+        - Key: Project
+          Value: DocsMind
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: docsmind-embedding-dev
+      LaunchTemplateData:
+        ImageId: !Ref EcsAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt ContainerInstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeType: gp3
+              VolumeSize: 40
+              Encrypted: true
+              DeleteOnTermination: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -euo pipefail
+            echo "ECS_CLUSTER=${Cluster}" >> /etc/ecs/ecs.config
+            echo "ECS_ENABLE_TASK_IAM_ROLE=true" >> /etc/ecs/ecs.config
+            mkdir -p /opt/docsmind/huggingface
+            chmod 0777 /opt/docsmind/huggingface
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: docsmind-embedding-dev
+              - Key: Project
+                Value: DocsMind
+              - Key: Environment
+                Value: development
+          - ResourceType: volume
+            Tags:
+              - Key: Project
+                Value: DocsMind
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: docsmind-embedding-dev
+      VPCZoneIdentifier:
+        - !Ref SubnetId
+      MinSize: 0
+      MaxSize: 1
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckType: EC2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      Tags:
+        - Key: Project
+          Value: DocsMind
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: development
+          PropagateAtLaunch: true
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 0
+        MaxBatchSize: 1
+        PauseTime: PT5M
+
+  CapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: docsmind-embedding-dev
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref AutoScalingGroup
+        ManagedDraining: ENABLED
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1
+        ManagedTerminationProtection: DISABLED
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+  CapacityProviderAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref Cluster
+      CapacityProviders:
+        - !Ref CapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref CapacityProvider
+          Weight: 1
+          Base: 1
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: docsmind-embedding-cpu
+      RequiresCompatibilities:
+        - EC2
+      NetworkMode: bridge
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      Volumes:
+        - Name: model-cache
+          Host:
+            SourcePath: /opt/docsmind/huggingface
+      ContainerDefinitions:
+        - Name: tei
+          Image: !Ref TeiImage
+          Essential: true
+          Cpu: 1800
+          MemoryReservation: 6000
+          Memory: 7000
+          Command:
+            - --model-id
+            - !Ref EmbeddingModel
+            - --revision
+            - !Ref EmbeddingModelRevision
+            - --dtype
+            - float32
+            - --pooling
+            - cls
+            - --port
+            - "80"
+            - --max-batch-tokens
+            - "2048"
+            - --max-concurrent-requests
+            - "8"
+            - --max-client-batch-size
+            - "8"
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 8080
+              Protocol: tcp
+          MountPoints:
+            - SourceVolume: model-cache
+              ContainerPath: /data
+              ReadOnly: false
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -fsS http://localhost:80/health || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 5
+            StartPeriod: 300
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: tei
+      Tags:
+        - Key: Project
+          Value: DocsMind
+        - Key: Model
+          Value: !Ref EmbeddingModel
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - CapacityProviderAssociation
+    Properties:
+      ServiceName: docsmind-embedding-cpu
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: !Ref DesiredCapacity
+      CapacityProviderStrategy:
+        - CapacityProvider: !Ref CapacityProvider
+          Weight: 1
+          Base: 1
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 0
+        MaximumPercent: 100
+      HealthCheckGracePeriodSeconds: 900
+      EnableECSManagedTags: true
+      PropagateTags: TASK_DEFINITION
+      PlacementStrategies:
+        - Type: spread
+          Field: instanceId
+      Tags:
+        - Key: Project
+          Value: DocsMind
+
+Outputs:
+  ClusterName:
+    Value: !Ref Cluster
+  ServiceName:
+    Value: !GetAtt Service.Name
+  AutoScalingGroupName:
+    Value: !Ref AutoScalingGroup
+  CapacityProviderName:
+    Value: !Ref CapacityProvider
+  HostPort:
+    Value: "8080"
+  Model:
+    Value: !Sub "${EmbeddingModel}@${EmbeddingModelRevision}"

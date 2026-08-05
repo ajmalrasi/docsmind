@@ -53,7 +53,7 @@ def main() -> None:
     print(f"bm25_payload_load_ms={chunk_load_ms:.2f}")
 
     embedder = build_embedder(settings)
-    query_vector = embedder.encode([args.question])[0]
+    query_vector = embedder.embed_query(args.question)
 
     dense_ms = []
     for _ in range(args.runs):

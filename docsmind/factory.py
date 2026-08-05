@@ -8,7 +8,14 @@ from __future__ import annotations
 
 from docsmind.config import Settings
 from docsmind.index.base import VectorStore
-from docsmind.index.embeddings import Embedder
+from docsmind.index.embedding_manifest import validate_embedding_manifest
+from docsmind.index.embeddings import (
+    BedrockCohereEmbedder,
+    BedrockTitanEmbedder,
+    Embedder,
+    EmbeddingProvider,
+    TEIEmbedder,
+)
 from docsmind.llm.base import LLMClient
 from docsmind.llm.cloud_client import CloudLLMClient
 from docsmind.llm.local_client import LocalLLMClient
@@ -19,7 +26,34 @@ from docsmind.retrieval.reranker import CrossEncoderReranker
 from docsmind.retrieval.retriever import HybridRetriever, Retriever
 
 
-def build_embedder(settings: Settings) -> Embedder:
+def build_embedder(settings: Settings) -> EmbeddingProvider:
+    if settings.embedding_provider == "tei":
+        return TEIEmbedder(
+            settings.tei_embed_model,
+            dimension=settings.tei_embed_dimensions,
+            base_url=settings.tei_base_url,
+            batch_size=settings.tei_embed_batch_size,
+            timeout=settings.tei_timeout_seconds,
+        )
+    if settings.embedding_provider == "bedrock":
+        embed_region = settings.bedrock_embed_region or settings.aws_region
+        if settings.bedrock_embed_model.startswith("amazon.titan-embed-text-v2"):
+            return BedrockTitanEmbedder(
+                settings.bedrock_embed_model,
+                dimension=settings.bedrock_embed_dimensions,
+                region=embed_region,
+                profile_name=settings.aws_profile,
+                concurrency=settings.bedrock_embed_concurrency,
+                max_retries=settings.bedrock_embed_max_retries,
+            )
+        return BedrockCohereEmbedder(
+            settings.bedrock_embed_model,
+            dimension=settings.bedrock_embed_dimensions,
+            region=embed_region,
+            profile_name=settings.aws_profile,
+            batch_size=settings.bedrock_embed_batch_size,
+            max_retries=settings.bedrock_embed_max_retries,
+        )
     return Embedder(settings.embed_model, device=settings.embed_device or None)
 
 
@@ -104,7 +138,9 @@ def load_store(settings: Settings) -> VectorStore:
     )
 
 
-def build_retriever(settings: Settings, embedder: Embedder, store: VectorStore):
+def build_retriever(
+    settings: Settings, embedder: EmbeddingProvider, store: VectorStore
+):
     """Select dense vs. hybrid retrieval per settings.retrieval_mode."""
     if settings.retrieval_mode == "hybrid":
         reranker = (
@@ -161,6 +197,7 @@ def build_pipeline(settings: Settings) -> RAGPipeline:
     # FAISS-first import order can segfault sentence-transformer encode on macOS.
     _ = embedder.dim
     store = load_store(settings)
+    validate_embedding_manifest(settings.index_dir, embedder)
     retriever = build_retriever(settings, embedder, store)
     llm = build_llm(settings)
     return RAGPipeline(retriever, llm, settings)

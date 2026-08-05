@@ -23,7 +23,7 @@ The hybrid flow, stage by stage:
 from __future__ import annotations
 
 from docsmind.index.base import VectorStore
-from docsmind.index.embeddings import Embedder
+from docsmind.index.embeddings import EmbeddingProvider
 from docsmind.retrieval.bm25 import BM25Index
 from docsmind.retrieval.fusion import reciprocal_rank_fusion
 from docsmind.retrieval.reranker import CrossEncoderReranker
@@ -33,12 +33,12 @@ from docsmind.schemas import SearchResult
 class Retriever:
     """Phase 1 dense retriever: embed the query, search the vector store."""
 
-    def __init__(self, embedder: Embedder, store: VectorStore) -> None:
+    def __init__(self, embedder: EmbeddingProvider, store: VectorStore) -> None:
         self._embedder = embedder
         self._store = store
 
     def retrieve(self, question: str, top_k: int) -> list[SearchResult]:
-        query_vec = self._embedder.encode([question])[0]
+        query_vec = self._embedder.embed_query(question)
         return self._store.search(query_vec, top_k)
 
 
@@ -47,7 +47,7 @@ class HybridRetriever:
 
     def __init__(
         self,
-        embedder: Embedder,
+        embedder: EmbeddingProvider,
         store: VectorStore,
         *,
         candidate_k: int = 20,
@@ -63,7 +63,7 @@ class HybridRetriever:
 
     def retrieve(self, question: str, top_k: int) -> list[SearchResult]:
         # 1. Two independent retrievals, each pulling a wide candidate set.
-        query_vec = self._embedder.encode([question])[0]
+        query_vec = self._embedder.embed_query(question)
         dense = self._store.search(query_vec, self._candidate_k)
         sparse = self._bm25.search(question, self._candidate_k)
 

@@ -45,11 +45,30 @@ class Settings(BaseSettings):
 
     max_tokens: int = 1024
 
-    # Self-hosted embedding model.
+    # Embeddings. "local" runs sentence-transformers in-process, "tei" calls
+    # the self-hosted AWS service, and "bedrock" selects a managed provider.
+    embedding_provider: Literal["local", "bedrock", "tei"] = "local"
     embed_model: str = "BAAI/bge-small-en-v1.5"
     # Empty means sentence-transformers auto-selects a device. On an 8 GB GPU
     # dedicated to vLLM, set this to "cpu" so retrieval and generation coexist.
     embed_device: str = ""
+    bedrock_embed_model: str = "amazon.titan-embed-text-v2:0"
+    # May differ from OpenSearch's aws_region when Bedrock capacity/quota does.
+    # Empty inherits aws_region.
+    bedrock_embed_region: str = ""
+    # Validated by the selected Bedrock embedder. Keep this as int so env values
+    # such as "1024" are parsed naturally by pydantic-settings.
+    bedrock_embed_dimensions: int = 1024
+    bedrock_embed_batch_size: int = 96
+    bedrock_embed_concurrency: int = 2
+    bedrock_embed_max_retries: int = 5
+    # Remote Hugging Face Text Embeddings Inference service. The development
+    # deployment uses BGE-M3 on ECS/EC2 and reaches it through an SSM tunnel.
+    tei_embed_model: str = "BAAI/bge-m3"
+    tei_embed_dimensions: int = 1024
+    tei_base_url: str = "http://localhost:8080"
+    tei_embed_batch_size: int = 8
+    tei_timeout_seconds: float = 120.0
 
     # Vector store backend. "faiss" is in-process, "qdrant" is local or
     # self-hosted, and "opensearch" uses AWS OpenSearch Serverless. All three

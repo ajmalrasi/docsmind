@@ -25,8 +25,8 @@ Question -> BM25 search -----+-> RRF fusion -> optional rerank
 
 | Pipeline stage | Current implementation |
 |---|---|
-| Ingest and chunk | LlamaIndex file loading and `SentenceSplitter`, plus corpus-specific Briskoda and WhatsApp preparation |
-| Embed | Self-hosted `BAAI/bge-small-en-v1.5` embeddings |
+| Ingest and chunk | LlamaIndex file loading and `SentenceSplitter`, plus Wikipedia, Briskoda, and WhatsApp corpus adapters |
+| Embed | Local `bge-small` baseline, self-hosted BGE-M3 through TEI on AWS ECS/EC2, or optional Bedrock providers |
 | Index and dense search | FAISS, Qdrant, or AWS OpenSearch behind one `VectorStore` interface |
 | Sparse search | BM25 over the chunks exposed by the selected vector store |
 | Fusion | Reciprocal Rank Fusion (RRF) combines dense and BM25 rankings |
@@ -81,7 +81,7 @@ The implemented system is deliberately modular:
 Corpus
   -> loader / corpus adapter
   -> chunks
-  -> self-hosted embeddings
+  -> configured embedding provider (local BGE | remote TEI/BGE-M3 | Bedrock)
   -> VectorStore (FAISS | Qdrant | OpenSearch)
   -> dense + BM25 retrieval
   -> RRF
@@ -162,6 +162,19 @@ preparation—for example, preserving forum post metadata or turning messages
 into conversation windows. That adapter still outputs the same `Document` and
 chunk contracts consumed by the rest of DocsMind.
 
+For the included Volkswagen Group Wikipedia corpus:
+
+```bash
+make wikipedia-corpus
+DOCSMIND_DATA_DIR=data/wikipedia \
+DOCSMIND_INDEX_DIR=data/index-wikipedia \
+make ingest
+```
+
+The versioned manifest controls which articles belong to the corpus. The fetched
+JSONL snapshot preserves section paths, tables, canonical URLs, page IDs, and
+revision IDs. See [the corpus design and measurements](docs/13-wikipedia-volkswagen/README.md).
+
 ## Configuration
 
 All DocsMind settings use the `DOCSMIND_` prefix and can be placed in `.env`.
@@ -169,6 +182,14 @@ See `.env.example` for the full list.
 
 | Setting | Default | Meaning |
 |---|---|---|
+| `DOCSMIND_EMBEDDING_PROVIDER` | `local` | `local`, self-hosted `tei`, or managed `bedrock` embeddings |
+| `DOCSMIND_TEI_EMBED_MODEL` | `BAAI/bge-m3` | Model identity expected from the remote TEI service |
+| `DOCSMIND_TEI_BASE_URL` | `http://localhost:8080` | TEI endpoint; the AWS dev path uses an SSM tunnel |
+| `DOCSMIND_TEI_EMBED_DIMENSIONS` | `1024` | BGE-M3 vector size; use a new index when switching models |
+| `DOCSMIND_TEI_EMBED_BATCH_SIZE` | `8` | Documents sent per TEI call; must fit the service limit |
+| `DOCSMIND_BEDROCK_EMBED_MODEL` | `amazon.titan-embed-text-v2:0` | AWS-native default; Cohere v4 is also supported |
+| `DOCSMIND_BEDROCK_EMBED_REGION` | empty | Bedrock region; empty inherits `DOCSMIND_AWS_REGION` |
+| `DOCSMIND_BEDROCK_EMBED_DIMENSIONS` | `1024` | Vector size; changing it requires a separate re-ingested index |
 | `DOCSMIND_VECTOR_BACKEND` | `faiss` | `faiss`, `qdrant`, or `opensearch` |
 | `DOCSMIND_INDEX_TYPE` | `flat` | FAISS `flat`, `ivf`, `hnsw`, or `ivfpq` |
 | `DOCSMIND_RETRIEVAL_MODE` | `hybrid` | Dense + BM25 + RRF, or `dense` baseline |
@@ -211,6 +232,7 @@ make benchmark                         # FAISS recall/latency/memory trade-offs
 make eval                              # dense versus hybrid retrieval
 make eval ARGS=--rerank                # add cross-encoder reranking
 make vllm-benchmark ARGS='--concurrency 1 2 4'
+make aws-embedding-benchmark           # BGE-M3 latency/throughput through SSM
 ```
 
 For retrieval, compare Hit@k and MRR at the same chunk size and labeled query
@@ -228,6 +250,12 @@ to a cloud model during transient availability failures.
 See [the benchmark results](docs/12-vllm-serving/benchmark-results.md) for the
 observed hardware, model runtime, TTFT, throughput, GPU memory, and cost
 calculation. AWS OpenSearch Serverless is the managed vector-store deployment.
+
+The embedding deployment is separate from generation: BGE-M3 runs in Hugging
+Face TEI on one CPU `m7i.large` managed by ECS on EC2. The host has no inbound
+security-group rules; development access uses an SSM port-forwarding session.
+The measured CPU baseline and start/stop workflow are in
+[the AWS embedding-service guide](docs/14-aws-embedding-service/README.md).
 
 The Makefile still contains `digitalocean-*` targets from the earlier remote
 development workflow. They are optional rsync/SSH helpers, not a requirement and

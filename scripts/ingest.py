@@ -9,6 +9,7 @@ from docsmind.config import get_settings
 from docsmind.factory import build_embedder, new_store
 from docsmind.ingestion.chunker import chunk_documents
 from docsmind.ingestion.loaders import load_documents
+from docsmind.index.embedding_manifest import save_embedding_manifest
 
 
 def main() -> None:
@@ -28,13 +29,17 @@ def main() -> None:
     )
     print(f"  produced {len(chunks)} chunk(s)")
 
-    print(f"Embedding with {settings.embed_model} ...")
     embedder = build_embedder(settings)
-    embeddings = embedder.encode([c.text for c in chunks])
+    print(
+        f"Embedding with {embedder.provider_name}:{embedder.model_name} "
+        f"(dimension={embedder.dim}) ..."
+    )
+    embeddings = embedder.embed_documents([c.text for c in chunks])
 
     store = new_store(settings, dim=embedder.dim)
     store.add(chunks, embeddings)
     store.save(settings.index_dir)
+    save_embedding_manifest(settings.index_dir, embedder)
     location = (
         settings.opensearch_endpoint
         if settings.vector_backend == "opensearch"

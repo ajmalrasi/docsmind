@@ -17,8 +17,8 @@ class FakeEmbedder:
     def __init__(self, query_vec):
         self._q = np.array([query_vec], dtype=np.float32)
 
-    def encode(self, texts):
-        return self._q
+    def embed_query(self, text):
+        return self._q[0]
 
 
 def _store() -> FaissVectorStore:
