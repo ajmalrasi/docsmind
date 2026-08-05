@@ -49,6 +49,14 @@ def test_only_valid_markers_kept():
     assert {c.marker for c in resp.citations} == {1}
 
 
+def test_comma_separated_marker_group_is_normalized():
+    pipe = _pipeline(_results(), "Combined evidence [1, 2, 9].")
+
+    resp = pipe.query("q", top_k=2)
+
+    assert {c.marker for c in resp.citations} == {1, 2}
+
+
 def test_insufficient_context_is_not_grounded():
     pipe = _pipeline(_results(), INSUFFICIENT)
     resp = pipe.query("q", top_k=2)

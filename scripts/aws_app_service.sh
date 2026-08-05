@@ -132,7 +132,7 @@ case "$ACTION" in
         VllmBaseUrl="$VLLM_BASE_URL_VALUE" \
         VllmModel="${VLLM_MODEL:-openclaw}" \
         InstanceType="${EMBEDDING_INSTANCE_TYPE:-m7i.large}" \
-        DesiredCapacity=0 \
+        DesiredCapacity="${APP_DEPLOY_DESIRED_CAPACITY:-0}" \
       --tags Project=DocsMind Environment=development
     aws_cli cloudformation describe-stacks --stack-name "$EMBEDDING_STACK" \
       --query 'Stacks[0].Outputs[?OutputKey==`AppUrl` || OutputKey==`VllmApiKeySecretArn`].[OutputKey,OutputValue]' \
@@ -143,10 +143,13 @@ case "$ACTION" in
       echo "Pipe the vLLM API key to this command; it is not accepted as an argument." >&2
       exit 2
     fi
-    aws_cli secretsmanager put-secret-value \
-      --secret-id docsmind/vllm-api-key \
-      --secret-string file:///dev/stdin \
-      --query 'ARN' --output text
+    # SSH and command-line producers commonly append one newline. Header values
+    # cannot contain CR/LF, so normalize transport line endings before storage
+    # without ever holding or printing the key in a shell variable.
+    tr -d '\r\n' | aws_cli secretsmanager put-secret-value \
+        --secret-id docsmind/vllm-api-key \
+        --secret-string file:///dev/stdin \
+        --query 'ARN' --output text
     ;;
   start)
     aws_cli autoscaling update-auto-scaling-group \

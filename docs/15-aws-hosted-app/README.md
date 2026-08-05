@@ -187,6 +187,43 @@ HTTP plus a workstation `/32` is deliberately a temporary development boundary.
 | Query returns generation 502/503 | Generate | vLLM URL, secret version, and provider logs |
 | UI opens but questions fail after secret update | Generate | ECS injects secrets only at container start; force a new deployment |
 
+### First query hurdle: newline in the injected bearer token
+
+The first hosted `/query` reached a healthy application with 1,776 OpenSearch
+chunks but returned 503 at the model boundary. The ECS host could reach vLLM
+over HTTPS, so security groups and DNS were not the cause. The secret had been
+piped from an SSH command that printed a trailing newline. Secrets Manager
+preserved it, and the resulting Authorization header was invalid.
+
+The `secret` action now removes only CR/LF transport characters while streaming
+stdin directly to Secrets Manager. It never stores or prints the key in a shell
+variable. After secret rotation, ECS needs a new task deployment because secret
+values are injected only when a container starts.
+
+### First successful answer: citation-format drift
+
+After the secret fix, the hosted pipeline answered the Golf Mk7 question
+correctly in about 5.3 seconds:
+
+```text
+The Volkswagen Golf Mk7 uses the MQB platform [1, 2, 4].
+```
+
+The prompt requested `[1][2][4]`. The open model instead produced the common
+grouped form `[1, 2, 4]`. Retrieval and generation succeeded, but the original
+regex extracted no citations, so the UI received an empty source list.
+
+`RAGPipeline._extract_citations()` now accepts both formats, still discards
+numbers outside the supplied passage range, and has an offline regression test.
+The prompt remains strict because format instructions reduce variation; the
+parser is tolerant because production systems must not assume perfect model
+format compliance.
+
+In an interview, this is a concrete structured-output regression: the natural
+language answer was correct, yet the machine-consumed citation contract failed.
+The fix belongs at both layers—clearer prompting and defensive parsing—and the
+evidence is the before/after API response, not a subjective visual judgment.
+
 In an interview, the real question is not “did you push a Docker image to ECR?”
 It is: “how did the image receive identity and secrets, how did readiness prevent
 bad tasks from receiving traffic, why was the topology coupled, and what would

@@ -21,11 +21,12 @@ SYSTEM_PROMPT = (
     "You are DocsMind, a question-answering assistant for technical and ML "
     "documentation. Answer ONLY from the numbered context passages provided. "
     "Cite every claim with its passage number in square brackets, e.g. [1] or "
-    "[2][3]. Do not use outside knowledge. If the context does not contain enough "
+    "[2][3]. Put each passage number in its own brackets; do not write [2, 3]. "
+    "Do not use outside knowledge. If the context does not contain enough "
     f"information to answer, reply with exactly: {INSUFFICIENT}"
 )
 
-_MARKER_RE = re.compile(r"\[(\d+)\]")
+_MARKER_GROUP_RE = re.compile(r"\[([\d,\s]+)\]")
 
 
 class RAGPipeline:
@@ -75,7 +76,14 @@ class RAGPipeline:
     def _extract_citations(
         answer: str, results: list[SearchResult]
     ) -> list[Citation]:
-        cited_markers = {int(m) for m in _MARKER_RE.findall(answer)}
+        # Prefer the instructed [1][2] form, but tolerate the common open-model
+        # variant [1, 2]. Reject arbitrary bracketed text and keep only numbers
+        # that map to passages actually supplied to the model.
+        cited_markers = {
+            int(marker)
+            for group in _MARKER_GROUP_RE.findall(answer)
+            for marker in re.findall(r"\d+", group)
+        }
         # Keep only valid markers that map to a retrieved passage.
         cited_markers = {m for m in cited_markers if 1 <= m <= len(results)}
         citations = []
